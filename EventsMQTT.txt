@@ -1,0 +1,112 @@
+ARDUINOS
+Rotatori (WemosRotatori)
+SUB
+client.subscribe("sala1/abrirsecreta");
+client.subscribe("sala1/cerrarsecreta");
+client.subscribe("sala1/audioabrirsecreta");
+client.subscribe("sala1/audiotrofeo");
+PUB
+client.publish("sala1/pasecreta", "ON");           
+client.publish("sala1/pcsecreta", "ON");
+client.publish("sala1/telefono", cod.c_str());
+
+KeyPad (KeyPad)
+SUB
+client.subscribe("sala1/abrirpuertadirector");
+client.subscribe("sala1/cerrarpuertadirector");
+PUB
+client.publish("sala1/tpdirector",(char *)cod.c_str());
+client.publsih("sala1/padirector","ON");
+
+SensoresUltrasonidosLeds (SalaFinal)
+SUB
+client.subscribe("sala1/reinici");
+client.subscribe("sala1/inici");
+client.subscribe("sala1/posta1");
+client.subscribe("sala1/posta2");
+client.subscribe("sala1/posta3");
+client.subscribe("sala1/posta4");
+client.subscribe("sala1/posta5"); 
+client.subscribe("sala1/final");  
+client.subscribe("sala1/encenLlum"); 
+client.subscribe("sala1/apagaLlum"); 
+client.subscribe("sala1/rfid"); //Tarjeta casco alado
+
+PUB
+client.publish("sala1/casco1","on"); //Envia el event per al sonido i per al pisto
+client.publish("sala1/casco2","on"); //Envia el event per a la veu de OCCA i per al pisto
+client.publish("sala1/casco3","on"); //Envia el event per a OCCA i per al pisto
+client.publish("sala1/casco4","on"); //Envia el event per a OCCA i per al pisto
+client.publish("sala1/casco45","on"); //Envia el event per a OCCA
+client.publish("sala1/casco5","on"); //Envia el event per a OCCA i per al pisto
+client.publish("sala1/error","on");  //Error prova per a OCCA i per al pisto
+
+Pisto (CascoAlado)
+SUB
+client.subscribe("sala1/reinici");
+client.subscribe("sala1/casco1");
+client.subscribe("sala1/casco2");
+client.subscribe("sala1/casco3");
+client.subscribe("sala1/casco4");
+client.subscribe("sala1/casco5");      
+client.subscribe("sala1/error");
+PUB
+client.publish("sala1/finalcarrera");
+
+RFIDReles (PortaFinal)
+SUB
+client.subscribe("sala1/obrirportafinal"); //OBRI DIRECTAMENT PORTA (VERD) 
+client.subscribe("sala1/tancarportafinal"); //TANCA PORTA (ROIG)
+client.subscribe("sala1/simularfid"); //
+client.subscribe("sala1/reinici");   
+PUB
+client.publish("sala1/rfid","on");
+client.publish("sala1/portafinal","on");  
+
+
+PYTHON
+servidorMusica
+SUB
+client.subscribe("sala1/comensa");
+client.subscribe("sala1/padirector");
+client.subscribe("sala1/tpdirector");
+client.subscribe("sala1/pasecreta");
+client.subscribe("sala1/final"); //para musica(para) audio i video (finalmalo)
+client.subscribe("sala1/telefono");
+
+servidorAudio
+client.subscribe("sala1/inici");
+client.subscribe("sala1/casco");
+client.subscribe("sala1/casco1");
+client.subscribe("sala1/casco2");
+client.subscribe("sala1/casco3");
+client.subscribe("sala1/casco4");
+client.subscribe("sala1/casco5");      
+client.subscribe("sala1/error");
+client.subscribe("sala1/final");
+client.subscribe("sala1/telefono");
+...
+client.subscribe("sala1/pista1");
+client.subscribe("sala1/pista2");
+client.subscribe("sala1/pista3");
+
+client.subscribe("sala1/rfid"); //Tarjeta casco alado final
+
+servidorVideo
+SUB
+client.subscribe("sala1/comensa");
+client.subscribe("sala1/pista1");
+client.subscribe("sala1/pista2");
+client.subscribe("sala1/pista3");
+...
+client.subscribe("sala1/final");
+client.subscribe("sala1/rfid"); //Tarjeta casco alado final
+
+controladorWeb
+PUB
+client.publish("sala1/espera"); //MUSICA sala espera
+client.publish("sala1/empieza"); //AUDIO terroristas acompañan sala
+client.publish("sala1/comensa"); //MUSICA i cuentaAtras
+client.publish("sala1/pista1");
+client.publish("sala1/pista2");
+client.publish("sala1/pista3");

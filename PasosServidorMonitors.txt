@@ -1,0 +1,11 @@
+Instalar Raspbian Desktop
+Configurar Idioma y actualizar
+#sudo raspi-config -> 5 Interfacing Options -> P2 SSH -> Sí.
+#alsamixer
+#sudo alsactl store
+Instalar vim
+Instalar python-pip y paho-mqtt como pi y root
+Copiar videos .avi y ficheros a /home/pi/video
+Copiar cuentaAtras a /home/pi/video/cuenta
+Crear el service en /home/pi/.config/systemd/user/servidorMonitor.service
+#systemctl --user start servidorMonitor && #systemctl --user enable servidorMonitor
