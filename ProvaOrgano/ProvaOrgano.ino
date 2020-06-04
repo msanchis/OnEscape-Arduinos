@@ -9,7 +9,9 @@ boolean DEBUG = true;
 //VARIABLES i objectes de la xarxa i client Mosquitto
 byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0xFA};//mac del arduino
 IPAddress ip(192, 168, 68, 37); //Ip fija del arduino
-IPAddress server(192, 168, 68, 1); //Ip del server de mosquitto
+//IPAddress ip(192, 168, 1, 37); //Ip fija del arduino
+//IPAddress server(192, 168, 68, 1); //Ip del server de mosquitto
+IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT 
@@ -192,6 +194,7 @@ void reconnect() {
       }
 
       client.subscribe("sala2/reset"); 
+      client.subscribe("sala2/dificultad");
       client.subscribe("sala2/resetOrgano"); 
       client.subscribe("sala2/tecla1");     
       
@@ -235,11 +238,13 @@ void loop ()
   
   if (AlarmaTecla1) {    
     if (!EstadoTecla1 && (millis()-tiempoTecla1) > 300 ) {
+      client.publish("sala2/tecla1","1");
       Serial.println("tecla1 cambio de estado a 1");      
       EstadoTecla1=1;
     }
   } else {
     if (EstadoTecla1) {
+      client.publish("sala2/tecla1","0");
       Serial.println("tecla1 cambio de estado a 0");
       EstadoTecla1=0;   
       tiempoTecla1=millis();
@@ -248,11 +253,13 @@ void loop ()
 
  if (AlarmaTecla2) {    
     if (!EstadoTecla2 && (millis()-tiempoTecla2) > 300) {
+      client.publish("sala2/tecla2","1");
       Serial.println("tecla2 cambio de estado a 1");      
       EstadoTecla2=1;
     }
   } else {
     if (EstadoTecla2) {
+      client.publish("sala2/tecla2","0");
       Serial.println("tecla2 cambio de estado a 0");
       EstadoTecla2=0;   
       tiempoTecla2=millis();
@@ -261,11 +268,13 @@ void loop ()
 
  if (AlarmaTecla3 && (millis()-tiempoTecla3) > 300) {    
     if (!EstadoTecla3) {
+      client.publish("sala2/tecla3","1");
       Serial.println("tecla3 cambio de estado a 1");      
       EstadoTecla3=1;
     }
   } else {
     if (EstadoTecla3) {
+      client.publish("sala2/tecla3","0");
       Serial.println("tecla3 cambio de estado a 0");
       EstadoTecla3=0;   
       tiempoTecla3=millis();
@@ -274,11 +283,13 @@ void loop ()
 
   if (AlarmaTecla4 && (millis()-tiempoTecla4) > 300) {    
     if (!EstadoTecla4) {
+      client.publish("sala2/tecla4","1");
       Serial.println("tecla4 cambio de estado a 1");      
       EstadoTecla4=1;
     }
   } else {
     if (EstadoTecla4) {
+      client.publish("sala2/tecla4","0");
       Serial.println("tecla4 cambio de estado a 0");
       EstadoTecla4=0;   
       tiempoTecla4=millis();
@@ -287,11 +298,13 @@ void loop ()
 
   if (AlarmaTecla5) {    
     if (!EstadoTecla5 && (millis()-tiempoTecla5) > 300 ) {
+      client.publish("sala2/tecla5","1");
       Serial.println("tecla5 cambio de estado a 1");      
       EstadoTecla5=1;
     }
   } else {
     if (EstadoTecla5) {
+      client.publish("sala2/tecla5","0");
       Serial.println("tecla5 cambio de estado a 0");
       EstadoTecla5=0;   
       tiempoTecla5=millis();
@@ -300,11 +313,13 @@ void loop ()
 
  if (AlarmaTecla6) {    
     if (!EstadoTecla6 && (millis()-tiempoTecla6) > 300) {
+      client.publish("sala2/tecla6","1");
       Serial.println("tecla6 cambio de estado a 1");      
       EstadoTecla6=1;
     }
   } else {
     if (EstadoTecla6) {
+      client.publish("sala2/tecla6","0");
       Serial.println("tecla6 cambio de estado a 0");
       EstadoTecla6=0;   
       tiempoTecla6=millis();
@@ -313,11 +328,13 @@ void loop ()
 
  if (AlarmaTecla7 && (millis()-tiempoTecla7) > 300) {    
     if (!EstadoTecla7) {
+      client.publish("sala2/tecla7","1");
       Serial.println("tecla7 cambio de estado a 1");      
       EstadoTecla7=1;
     }
   } else {
     if (EstadoTecla7) {
+      client.publish("sala2/tecla7","0");
       Serial.println("tecla7 cambio de estado a 0");
       EstadoTecla7=0;   
       tiempoTecla7=millis();
@@ -326,11 +343,13 @@ void loop ()
 
   if (AlarmaTecla8 && (millis()-tiempoTecla8) > 300) {    
     if (!EstadoTecla8) {
+      client.publish("sala2/tecla8","1");
       Serial.println("tecla8 cambio de estado a 1");      
       EstadoTecla8=1;
     }
   } else {
     if (EstadoTecla8) {
+      client.publish("sala2/tecla8","0");
       Serial.println("tecla8 cambio de estado a 0");
       EstadoTecla8=0;   
       tiempoTecla8=millis();
