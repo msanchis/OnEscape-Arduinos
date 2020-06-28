@@ -1,6 +1,6 @@
 /*
   Actualitzat a dia 26/11/19
-   
+  Instalat 8/6/2020  
   KeyPadEthernet with RELAY, BUZZER AND LED
 
   TARJETA W5100 Ethernet

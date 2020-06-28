@@ -62,32 +62,6 @@ bool isEqualArray(byte* arrayA, byte* arrayB, int length)
   return true;
 }
 
-//Funcions per a la comunicació WIFI && Mosquitto
-/*
-void connectToWifi() {
-  WiFi.begin(ssid, password);
-  
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    //if (DEBUG) Serial.println(WiFi.status());
-  }
-
-  if (DEBUG) Serial.println(F("Subscribe to abrirfinal cerrarfinal reinici reset resetPortaFinal"));
-  client.subscribe("sala1/obrirportafinal");
-  client.subscribe("sala1/tancarportafinal");
-  client.subscribe("sala1/simularfid");
-  client.subscribe("sala1/reinici");   
-  client.subscribe("sala1/reset"); 
-  client.subscribe("sala1/resetPortaFinal");  
-
-  if (DEBUG)  {
-    Serial.print(F("Connected as "));
-    Serial.println(WiFi.localIP());
-  }
-} 
-*/
-
- 
 void callback(char* topic, byte* payload, unsigned int length) {
   if (DEBUG) {
     Serial.print(F("Message arrived"));
@@ -258,7 +232,7 @@ void loop() {
   if (entra && (millis() - obrir) > tempsFinal) {
     Serial.println(F("ENTRA en obrir porta relé verd"));
     client.publish("sala1/portafinal","on");
-    digitalWrite(RELE_VERD, HIGH);        
+    //digitalWrite(RELE_VERD, HIGH);        
     //digitalWrite(RELE_PORTA, LOW);
     entra=false;
     sale=true;    
@@ -266,6 +240,7 @@ void loop() {
     obrirPorta=millis();
  }else if (sale && (millis() - obrirPorta) > tempsObrirPorta){
     Serial.println(F("ENTRA en obrir porta relé porta"));
+    digitalWrite(RELE_VERD, HIGH);        
     digitalWrite(RELE_PORTA,LOW);    
  }
   

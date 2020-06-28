@@ -1,5 +1,5 @@
-/* Fecha Modificacio : 9/1/2020
- *  
+/* Fecha Modificacio : 8/6/2020
+ *  Instalat 8/6/2020
  * La variable estat s'utilitza per determinar en quin moment de la sala està actualment
  * Es poden arribar a cada estat directament amb els següents missatges 
  * estat = 0 <-- al rebre "sala1/reinici" 
@@ -55,6 +55,9 @@ int delayLeds= 1000; //INICI de la sala
 int delayLeds1=300;
 
 int estat=0; //La VARIABLE més important de la sala... determina l'estat en que es troba el sistema
+
+boolean ultimMinut = false; //Variable per saber si s'ha executat l'event de l'ultim Minut
+unsigned long iniciUltimMinut = 0; //Inici de l'ultim minut
 
 int distMin=0; //Variables para determinar la distancia mínima postes variables 2, 4 i 5
 int distMax=0; //Variables para determinar la distancia máxima postes variables 2, 4 i 5
@@ -564,6 +567,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
      estat=8;
   }
+  //TODO IMPLEMENTAR
+  res=strcmp(topic,"sala1/ultimoMinuto");
+  if (res == 0) {    
+    if (DEBUG) {
+      Serial.print(F("ENTRA en ultimoMinuto"));
+    }
+     //estat=20;
+     iniciUltimMinut=millis();
+     ultimMinut=true;
+  }
+  
   res=strcmp(topic,"sala1/reset");
   int resu = strcmp(topic,"sala1/resetSalaFinal");  
   if (res == 0 || resu == 0) { //RESET PLACA
@@ -600,6 +614,7 @@ void reconnect() {
       client.subscribe("sala1/portafinal");
       client.subscribe("sala1/reset"); 
       client.subscribe("sala1/resetSalaFinal");
+      client.subscribe("sala1/ultimoMinuto");
            
     } else {
       if (DEBUG) {
@@ -1481,12 +1496,21 @@ void estat6(){ //Despres de superar les 5 proves
 }
 
 void estatFinal(){
+    //apagaTODAS();
+    for (int i=0;  i < 3; i++){    
+      apagaTODAS();
+      delay(delayLeds);
+      enciendeTODAS(255,0,0);
+      delay(delayLeds);
+    }  
+    
+    //delay(7000); //Temps espera DECODIFICANDO
+    delay(1000); //Temps de 6 segs + 1 espera DECODIFICANDO
     apagaTODAS();
-    delay(7000); //Temps espera DECODIFICANDO
     estat=8;
 }
 
-bool pasa2=false;
+bool pasa2=false; //Variable para que entre una única vez en encendido general
 void fin(){
   if (!pasa2) {
     enciendeTODAS(255,255,255);
@@ -1515,7 +1539,14 @@ void errorReinici(){
 
 
 
+bool pasa3 = false; //Variable para que espere 44 segs en encendre llums general (cridar funcio fin())
+unsigned long tempsFin=0;
 void loop() {
+
+
+if (ultimMinut && ( millis() - iniciUltimMinut > 610000 )) {
+  estat=8;
+}
 
  switch(estat){    
 
@@ -1539,7 +1570,7 @@ void loop() {
         delay(delayLeds);
         enciendeSoloPOSTA5(255,255,255);
         delay(delayLeds);
-        enciendeSoloCASCO(255,255,255);    
+         enciendeSoloCASCO(255,255,255);    
         delay(5000);
         estat=1;
       }
@@ -1627,7 +1658,16 @@ void loop() {
       if (DEBUG2) {
         Serial.println(F("PASA: Estat = 8"));        
       }
-      fin();
+      if (!pasa3) {
+        tempsFin=millis();
+        pasa3=true;
+      }
+      if ((millis() - tempsFin) > 44000 ) fin(); //Espera 44 segs per encendre la llum i obrir la porta, tot a la vegada
+      break;
+    case 20: //sala1/ultimoMinuto
+      if (DEBUG2) {
+        Serial.println(F("PASA: Estat = 20  ulitmoMinuto"));        
+      }
       break;
  }
 
