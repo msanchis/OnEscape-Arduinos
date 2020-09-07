@@ -12,6 +12,7 @@ PubSubClient client(ethClient); //cliente MQTT
 
 const boolean DEBUG = true;
 unsigned long debugTemps=0;
+unsigned long tempsIman1=0;
 //Variable IMPORTANT que permet la màquina d'estats del pedestal
 int estat=0; 
 
@@ -24,7 +25,7 @@ boolean entra4=false;
 boolean entra5=false;
 boolean entra6=false;
 
-
+boolean final=false;
 
 const int SensorPuzzle = A0; //Sensor puzzle paret
 unsigned long marcaTemps0 = 0; //Marca de temps per al puzzle paret
@@ -109,16 +110,17 @@ void setup() {
   pinMode(RelElectro8, OUTPUT);
 
 
-  digitalWrite(RelElectro1,LOW);
-  digitalWrite(RelElectro2,LOW);
-  digitalWrite(RelElectro3,LOW);
-  digitalWrite(RelElectro4,LOW);
-  digitalWrite(RelElectro5,LOW);
-  digitalWrite(RelElectro6,LOW);
-  digitalWrite(RelElectro7,LOW);
-  digitalWrite(RelElectro8,LOW);
+  digitalWrite(RelElectro1,HIGH);
+  digitalWrite(RelElectro2,HIGH);
+  digitalWrite(RelElectro3,HIGH);
+  digitalWrite(RelElectro4,HIGH);
+  digitalWrite(RelElectro5,HIGH);
+  digitalWrite(RelElectro6,HIGH);
+  digitalWrite(RelElectro7,HIGH);
+  digitalWrite(RelElectro8,HIGH);
   
  debugTemps = millis();
+ tempsIman1 = debugTemps;
 }
 
 /*
@@ -147,6 +149,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
      entra4=false;
      entra5=false;
      entra6=false;
+     final=false;
 
      marcaTemps0 = 0; //Marca de temps per al puzzle paret
      marcaTemps1 = 0; //Marca de temps per als sensors 1 i 2
@@ -168,6 +171,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     if (DEBUG) Serial.print(F("Reinici Pedestal"));
   }
+
+  res=strcmp(topic,"sala2/estat1Pedestal");
+  if (res == 0) {    //RESET pedestal
+     estat=1;
+  }
+  res=strcmp(topic,"sala2/estat0Pedestal");
+  if (res == 0) {    //RESET pedestal
+     estat=0;
+  }
 }
  
 void reconnect() {
@@ -178,10 +190,12 @@ void reconnect() {
     if (client.connect("Pedestal")) {
       //Serial.println(F("connected"));      
 
-      if (DEBUG) Serial.print(F("Subscribe to abrirfinal cerrarfinal reinici reset resetPortaFinal"));
+      if (DEBUG) Serial.print(F("Subscribe to reset resetPedestal reiniciPedestal estat0Pedestal estat1Pedestal"));
       client.subscribe("sala2/reset"); 
       client.subscribe("sala2/resetPedestal");  
       client.subscribe("sala2/reiniciPedestal");
+      client.subscribe("sala2/estat0Pedestal");
+      client.subscribe("sala2/estat1Pedestal");
     
     } else {
       if (DEBUG) {
@@ -213,10 +227,17 @@ void loop() {
   int value12 = digitalRead(Sensor12);
 
 
+  if (millis() > (tempsIman1 + 10000)) {
+    if (DEBUG) Serial.println("RelElectro1 LOW");
+    digitalWrite(RelElectro1,LOW); // Desactivem el electroiman4 per a que obriga comporta
+    estat=1; 
+  }
+
   if (DEBUG && (millis() > (debugTemps + 500))) {
     debugTemps=millis();
     Serial.print("ESTAT ");
     Serial.println(estat);
+    Serial.println("0 1 2 3 4 5 6 7 8 9 0 1 2");
     Serial.print(value);
     Serial.print(" ");
     Serial.print(value1);
@@ -259,14 +280,15 @@ void loop() {
         entra=false;
       }
       if (marcaTemps0 > 0 && (millis()-marcaTemps0 > 300)){
-        digitalWrite(RelElectro1,HIGH); // Desactivem el electroiman4 per a que obriga comporta
+        if (DEBUG) Serial.println("RelElectro1 LOW");
+        digitalWrite(RelElectro1,LOW); // Desactivem el electroiman4 per a que obriga comporta
         estat=1;        
       }      
       break;
       
     case 1: //Esperant relíquia1
       //if (DEBUG) Serial.println("ESTAT 1");
-      if ((value7 == 0 || value7 == 0) && !entra1){    //SENSORS 7 i 8
+      if ((value7 == 0 || value8 == 0) && !entra1){    //SENSORS 7 i 8
         marcaTemps1=millis();
         entra1=true;
       }
@@ -275,9 +297,10 @@ void loop() {
         entra1=false;
       }
       if (marcaTemps1 > 0 && (millis()-marcaTemps1 > 300)){
-        digitalWrite(RelElectro2,HIGH); //Desactivem electroiman6 i encenem llum 4
+         if (DEBUG) Serial.println("RelElectro2 LOW");
+        digitalWrite(RelElectro2,LOW); //Desactivem electroiman6 i encenem llum 4
         //estat=2;
-      }else digitalWrite(RelElectro2,LOW); //Apaguem llum          
+      }else digitalWrite(RelElectro2,HIGH); //Apaguem llum          
                 
       if ((value11 == 0 || value12 == 0) && !entra2){   //SENSORS 11 i 12
         marcaTemps2=millis();
@@ -288,9 +311,10 @@ void loop() {
         entra2=false;
       }
       if (marcaTemps2 > 0 && (millis()-marcaTemps2  > 300)){
-        digitalWrite(RelElectro3,HIGH); //Desactivem electroiman1 i encenem llum 6
+        if (DEBUG) Serial.println("RelElectro3 LOW");
+        digitalWrite(RelElectro3,LOW); //Desactivem electroiman1 i encenem llum 6
         //estat=3;
-      }else digitalWrite(RelElectro3,LOW);
+      }else digitalWrite(RelElectro3,HIGH);
       
       if ((value1 == 0 || value2 == 0) && !entra3){     //SENSORS 1 i 2
         marcaTemps3=millis();
@@ -301,9 +325,10 @@ void loop() {
         entra3=false;
       }
       if (marcaTemps3 > 0 && (millis()-marcaTemps3 > 300)){
-        digitalWrite(RelElectro4,HIGH); //Desactivem electroiman5 i encenem llum 1
+         if (DEBUG) Serial.println("RelElectro4 LOW");
+        digitalWrite(RelElectro4,LOW); //Desactivem electroiman5 i encenem llum 1
         //estat=4;
-      }else digitalWrite(RelElectro4,LOW);
+      }else digitalWrite(RelElectro4,HIGH);
                   
       if ((value9 == 0 || value == 10) && !entra4){       //SENSORS 9 i 10
         marcaTemps4=millis();
@@ -314,9 +339,10 @@ void loop() {
         entra4=false;
       }
       if (marcaTemps4 > 0 && (millis()-marcaTemps4 > 300)){
-        digitalWrite(RelElectro5,HIGH); //Desactivem electroiman3 i encenem llum 5
+         if (DEBUG) Serial.println("RelElectro5 LOW");
+        digitalWrite(RelElectro5,LOW); //Desactivem electroiman3 i encenem llum 5
         //estat=5;
-      }else digitalWrite(RelElectro5,LOW);
+      }else digitalWrite(RelElectro5,HIGH);
             
       if ((value3 == 0 || value4 == 0) && !entra5){       //SENSORS 3 i 4
         marcaTemps5=millis();
@@ -327,45 +353,60 @@ void loop() {
         entra5=false;
       }
       if (marcaTemps5 > 0 && (millis()-marcaTemps5 > 300)){
-        digitalWrite(RelElectro6,HIGH); //Desactivem electroiman6 i encenem llum 3
+         if (DEBUG) Serial.println("RelElectro6 LOW");
+        digitalWrite(RelElectro6,LOW); //Desactivem electroiman6 i encenem llum 3
         //estat=6;
-      }else digitalWrite(RelElectro6,LOW);
+      }else digitalWrite(RelElectro6,HIGH);
             
       if ((value5 == 0 || value6 == 0) && !entra6){   //SENSORS 5 i 6
         marcaTemps6=millis();
         entra6=true;
       }
-      if (value5 == 1 && value5 == 1){                //SENSORS 5 i 6
+      if (value5 == 1 && value6 == 1){                //SENSORS 5 i 6
         marcaTemps6=0;
         entra6=false;
       }
       if (marcaTemps6 > 0 && (millis()-marcaTemps6 > 300)){
-        digitalWrite(RelElectro7,HIGH); //Encenem llum 6
+         if (DEBUG) Serial.println("RelElectro7 LOW");
+        digitalWrite(RelElectro7,LOW); //Encenem llum 6
         //estat=7;
-      }else digitalWrite(RelElectro7,LOW);
+      }else digitalWrite(RelElectro7,HIGH);
 
       unsigned long ara=millis();
 
       if (marcaTemps1 > 0 && marcaTemps2 > 0 && marcaTemps3 > 0 && marcaTemps4 > 0 && marcaTemps5 > 0 && marcaTemps6 > 0)
-          if ( (ara - marcaTemps1) > 500 && (ara - marcaTemps2) > 500 && (ara - marcaTemps3) > 500 && (ara - marcaTemps4) > 500 && (ara - marcaTemps5) > 500 && (ara - marcaTemps6) > 500 ) 
-             
-             digitalWrite(RelElectro2,LOW);
-             digitalWrite(RelElectro3,LOW);
-             digitalWrite(RelElectro4,LOW);
-             digitalWrite(RelElectro5,LOW);
-             digitalWrite(RelElectro6,LOW);
-             digitalWrite(RelElectro7,LOW);             
+          if ( !final && (ara - marcaTemps1) > 500 && (ara - marcaTemps2) > 500 && (ara - marcaTemps3) > 500 && (ara - marcaTemps4) > 500 && (ara - marcaTemps5) > 500 && (ara - marcaTemps6) > 500 ) {
+
+             final =true;
+             /*digitalWrite(RelElectro2,HIGH); //Apaguem totes les llums
+             delay(5);
+             digitalWrite(RelElectro3,HIGH);
+             delay(5);
+             digitalWrite(RelElectro4,HIGH);
+             delay(5);
+             digitalWrite(RelElectro5,HIGH);
+             delay(5);
+             digitalWrite(RelElectro6,HIGH);
+              delay(5);
+             digitalWrite(RelElectro7,HIGH);             
 
              delay(800);
              
-             digitalWrite(RelElectro2,HIGH);
-             digitalWrite(RelElectro3,HIGH);
-             digitalWrite(RelElectro4,HIGH);
-             digitalWrite(RelElectro5,HIGH);
-             digitalWrite(RelElectro6,HIGH);
-             digitalWrite(RelElectro7,HIGH);   
-             digitalWrite(RelElectro8,HIGH); //Desactivem electroiman de dalt i encenem la llum de dalt
-      
+             digitalWrite(RelElectro2,LOW); //Encenem totes les llums
+             delay(5);
+             digitalWrite(RelElectro3,LOW);
+             delay(5);
+             digitalWrite(RelElectro4,LOW);
+             delay(5);
+             digitalWrite(RelElectro5,LOW);
+             delay(5);
+             digitalWrite(RelElectro6,LOW);
+             delay(5);
+             digitalWrite(RelElectro7,LOW);   
+             delay(5);*/
+             if (DEBUG) Serial.println("RelElectro8 LOW");
+             digitalWrite(RelElectro8,LOW); //Desactivem electroiman de dalt i encenem la llum de dalt
+          }
       break;
 
   }
