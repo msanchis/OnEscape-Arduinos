@@ -192,7 +192,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
       }
      wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
   }
-       
+
+  res=strcmp(topic,"sala1/baixa");
+  if (res == 0) {
+      if (DEBUG) {
+        Serial.print(F("ENTRA en baixa"));
+      }
+      baixaPisto();
+  }
 }
 
 void transicio1(){
@@ -292,7 +299,8 @@ void reconnect() {
       client.subscribe("sala1/error"); 
       client.subscribe("sala1/reset"); 
       client.subscribe("sala1/resetCascoAlado"); 
-      client.subscribe("sala1/comensa");     
+      client.subscribe("sala1/comensa");
+      client.subscribe("sala1/baixa");
     } else {
       if (DEBUG) {
         Serial.print(F("FALLA, rc="));

@@ -10,7 +10,7 @@ PubSubClient client(ethClient); //cliente MQTT
 
 
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFA, 0xAD};
-//IPAddress ip(192, 168, 68, 81); //Ip fija del arduino
+IPAddress ip(192, 168, 68, 81); //Ip fija del arduino
 IPAddress server(192, 168, 68, 1); //Ip del server de mosquitt
 
 //#define RST_PIN         16          // Configurable, see typical pin layout above   D0
