@@ -18,6 +18,8 @@ EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT
 
 const boolean DEBUG = true;
+//const boolean DEBUG = false;
+
 unsigned long debugTemps=0;
 unsigned long tempsIman1=0;
 //Variable IMPORTANT que permet la màquina d'estats del pedestal
@@ -129,7 +131,6 @@ void setup() {
   pinMode(RelElectro7, OUTPUT);
   pinMode(RelElectro8, OUTPUT);
 
-
   digitalWrite(RelElectro1,HIGH);
   digitalWrite(RelElectro2,HIGH);
   digitalWrite(RelElectro3,HIGH);
@@ -139,8 +140,8 @@ void setup() {
   digitalWrite(RelElectro7,HIGH);
   digitalWrite(RelElectro8,HIGH);
   
- debugTemps = millis();
- tempsIman1 = debugTemps;
+  debugTemps = millis();
+  tempsIman1 = debugTemps;
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -235,11 +236,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     estat=6;
   }
   
-
   res = strcmp(topic,"sala2/llumFinalPedestal");
   if (res==0) {     //OBRI segon relé per encendre llum
     digitalWrite(RelElectro8,LOW);
-    estat=6;
+    estat=7;
   }
 }
  
@@ -399,9 +399,6 @@ if (estat < 7) {
   
 }
 
-
-
-
  switch(estat){    
 
     case 0: //Esperant puzzle1
@@ -524,42 +521,63 @@ if (estat < 7) {
 
     case 7:
 
+    if (DEBUG) {      
+      Serial.println("ESTAT 7 ");
+      Serial.println("condicio11 condicio21 condicio31 condicio41 condicio51 condicio61 final" );       
+      Serial.print(condicio11);
+      Serial.print(" ");
+      Serial.print(condicio21);
+      Serial.print(" ");
+      Serial.print(condicio31);
+      Serial.print(" ");
+      Serial.print(condicio41);
+      Serial.print(" ");
+      Serial.print(condicio51);
+      Serial.print(" ");
+      Serial.print(condicio61);
+      Serial.print(" ");
+      Serial.println(final);
+    }
+  
       unsigned long ara=millis();
 
       //if (marcaTemps1 > 0 && marcaTemps2 > 0 && marcaTemps3 > 0 && marcaTemps4 > 0 && marcaTemps5 > 0 && marcaTemps6 > 0)
       //    if ( !final && (ara - marcaTemps1) > 500 && (ara - marcaTemps2) > 500 && (ara - marcaTemps3) > 500 && (ara - marcaTemps4) > 500 && (ara - marcaTemps5) > 500 && (ara - marcaTemps6) > 500 ) {
-      if (!condicio11 && !condicio21 && !condicio31 && !condicio41 && !condicio51 && condicio61 && !final && (ara - marcaTemps6) > 300){
-
-             final =true;
-             /*digitalWrite(RelElectro2,HIGH); //Apaguem totes les llums
-             //delay(5);
-             digitalWrite(RelElectro3,HIGH);
-             //delay(5);
-             digitalWrite(RelElectro4,HIGH);
-             //delay(5);
-             digitalWrite(RelElectro5,HIGH);
-             //delay(5);
-             digitalWrite(RelElectro6,HIGH);
-             //delay(5);
-             digitalWrite(RelElectro7,HIGH);             
-
-             delay(800);
+      if (!condicio11 && !condicio21 && !condicio31 && !condicio41 && !condicio51 && !condicio61 && !final && (ara - marcaTemps6) > 300){
              
-             digitalWrite(RelElectro2,LOW); //Encenem totes les llums
-             //delay(5);
-             digitalWrite(RelElectro3,LOW);
-             //delay(5);
-             digitalWrite(RelElectro4,LOW);
-             //delay(5);
-             digitalWrite(RelElectro5,LOW);
-             //delay(5);
-             digitalWrite(RelElectro6,LOW);
-             //delay(5);
-             digitalWrite(RelElectro7,LOW);   
-             //delay(5);*/
-             if (DEBUG) Serial.println("RelElectro8 LOW");
-             digitalWrite(RelElectro8,LOW); //Desactivem electroiman de dalt i encenem la llum de dalt
-          }
+         final=true;
+
+         delay(1000);
+         digitalWrite(RelElectro7,HIGH); //Apaguem totes les llums
+         delay(500);
+         digitalWrite(RelElectro6,HIGH);
+         delay(500);
+         digitalWrite(RelElectro5,HIGH);
+         delay(500);
+         digitalWrite(RelElectro4,HIGH);
+         delay(500);
+         digitalWrite(RelElectro3,HIGH);
+         delay(500);
+         digitalWrite(RelElectro2,HIGH);             
+
+         delay(3000);
+         
+         digitalWrite(RelElectro2,LOW); //Encenem totes les llums
+         //delay(500);
+         digitalWrite(RelElectro3,LOW);
+         //delay(500);
+         digitalWrite(RelElectro4,LOW);
+         //delay(500);
+         digitalWrite(RelElectro5,LOW);
+         //delay(500);
+         digitalWrite(RelElectro6,LOW);
+         //delay(500);
+         digitalWrite(RelElectro7,LOW);   
+         //delay(500);
+         
+         if (DEBUG) Serial.println("RelElectro8 LOW");
+         digitalWrite(RelElectro8,LOW); //Desactivem electroiman de dalt i encenem la llum de dalt
+      }
       break;
 
   }
@@ -570,6 +588,5 @@ if (estat < 7) {
   
   client.loop();
   
-  
- 
+   
 }

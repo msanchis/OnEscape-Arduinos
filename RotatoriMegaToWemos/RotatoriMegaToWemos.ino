@@ -77,6 +77,7 @@ static const char wav_2[] PROGMEM = "ok.wav";
 static const char wav_3[] PROGMEM = "esfuer.wav";
 static const char wav_4[] PROGMEM = "trofeos.wav";
 static const char wav_5[] PROGMEM = "correcto.wav";
+static const char wav_6[] PROGMEM = "trofacil.wav"
 
 const char *wav_table[] = 
 {
@@ -329,9 +330,14 @@ void play_trofeo(){
 
 void play_correcto(){
   char wavFile[15];
-  strcpy_P(wavFile, wav_table[4]);
-  
+  strcpy_P(wavFile, wav_table[4]);  
   wav.play(wavFile);
+}
+
+void play_trofacil(){
+  char wavFile[15];
+  strcpy_P(wavFile, wav_table[6]);
+  wav.play(wavFile); 
 }
 
 //INTERRUPCIONS per al botó del teléfono de colgar i descolgar

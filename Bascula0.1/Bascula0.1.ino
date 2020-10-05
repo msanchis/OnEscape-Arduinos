@@ -3,10 +3,11 @@
 #include <SPI.h>
 #include <Ethernet.h> //Conexion Ethernet con carcasa W5100
 #include <PubSubClient.h> //Conexion MQTT
+#include <avr/wdt.h> // Incluir la librería de ATmel para poder reiniciar remotamente
 
 //VARIABLES i objectes de la xarxa i client Mosquitto
 byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFF, 0x08};//mac del arduino
-IPAddress ip(192, 168, 68, 27); //Ip fija del arduino
+IPAddress ip(192, 168, 68, 227); //Ip fija del arduino
 IPAddress server(192, 168, 68, 1); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
@@ -24,10 +25,11 @@ byte pinClk = A1;
 
 int releElectro = 5;
 
-int ledVerd = 6;
+int ledBlanc = 6;
 int ledRoig = 7;
 
-boolean abre = false;
+boolean obri = false; //Variable per assignar el estat del electroiman (porta)
+boolean manual = false; //Variable per canviar al mode manual i poder obrir i tancar la porta remotament
 
 // Objeto HX711
 HX711 bascula;
@@ -41,20 +43,20 @@ void setup() {
 #endif
 
    //MQTT
-  /*client.setServer(server, 1883);
+  client.setServer(server, 1883);
   client.setCallback(callback);
 
   //Ethernet.begin(mac);   
   Ethernet.begin(mac,ip);
       
   delay(100); //Cambio de 1000 a 100
-  if (DEBUG) {
+  #ifdef DEBUG_HX711
     Serial.println(F("connectant..."));
     Serial.println(Ethernet.localIP());
-    Serial.println(F("Definició dels PINS dels LEDS"));
-  }*/
+    Serial.println(F("Definició dels PINS dels LEDS i RELE"));
+  #endif
   
-  pinMode(ledVerd,OUTPUT);
+  pinMode(ledBlanc,OUTPUT);
   pinMode(ledRoig,OUTPUT);
   pinMode(releElectro,OUTPUT);  
 
@@ -67,12 +69,12 @@ void setup() {
   bascula.tare();
 }
 
-/*
+
 void callback(char* topic, byte* payload, unsigned int length) {
-  if (DEBUG) {
+  #ifdef DEBUG_HX711
     Serial.print(F("Message arrived"));
     Serial.println(topic);
-  }
+  #endif
   int res=strcmp(topic,"sala2/reset");
   if (res == 0) {    //RESET para toda la sala
      wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms      
@@ -81,39 +83,78 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (res == 0) {    //RESET para toda la sala
      wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms      
   }
-  
+  res=strcmp(topic,"sala2/basculaObrir");
+  if (res == 0) {    //OBRIR comporta, encendre llum blanca i apagar roja
+      if ( !obri) {
+        #ifdef DEBUG_HX711
+          Serial.print("ENTRA en !obri");
+        #endif  
+        digitalWrite(ledBlanc,HIGH);
+        digitalWrite(ledRoig,LOW);
+        digitalWrite(releElectro,LOW);     
+      }
+      obri=true;   
+  }
+  res=strcmp(topic,"sala2/basculaTancar");
+  if (res == 0) {     
+     if (obri) {
+      #ifdef DEBUG_HX711
+        Serial.print("ENTRA en obri");
+      #endif
+      digitalWrite(ledBlanc,LOW);
+      digitalWrite(ledRoig,HIGH);
+      digitalWrite(releElectro,HIGH);       
+    }
+    obri=false;
+  }
+  res=strcmp(topic,"sala2/basculaModoManual");
+  if (res == 0) {
+    manual=true;
+  }
+  res=strcmp(topic,"sala2/basculaModoAutomatic");
+  if (res == 0) {
+    manual=false;
+  }
 }
 
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
-    if (DEBUG) Serial.print(F("Attempting MQTT connection..."));
+    #ifdef DEBUG_HX711
+      Serial.print(F("Attempting MQTT connection..."));
+    #endif
     // Attempt to connect
     if (client.connect("Pedestal")) {
       //Serial.println(F("connected"));      
 
-      if (DEBUG) Serial.print(F("Subscribe to reset resetBascula"));
+      #ifdef DEBUG_HX711 
+        Serial.print(F("Subscribe to reset resetBascula"));
+      #endif
       client.subscribe("sala2/reset"); 
       client.subscribe("sala2/resetBascula");  
+      client.subscribe("sala2/basculaObrir");
+      client.subscribe("sala2/basculaTancar");
+      client.subscribe("sala2/basculaModoManual");
+      client.subscribe("sala2/basculaModoAutomatic");
     
     } else {
-      if (DEBUG) {
+      #ifdef DEBUG_HX711
         Serial.print(F("failed, rc="));
-        Serial.print(client.state());
+         Serial.print(client.state());
         Serial.println(" try again in 1 second");
-      }
+      #endif
       // Wait 1 seconds before retrying
       delay(1000);
     }
   }
 }
 
-*/
+
 
 
 void loop() {
 
-  float peso = bascula.get_units(12);  
+  float peso = bascula.get_units(15);  
   //if (peso == -(0.0)) peso = 0.0;
 
 #ifdef DEBUG_HX711
@@ -123,45 +164,82 @@ void loop() {
   Serial.println();
 #endif
 
-
-
-  if ( peso > 4.0 && peso < 4.5) {
-    #ifdef DEBUG_HX711
-      Serial.print("ENTRA en peso = 4.0 - 4.5");
-    #endif
-    
-    if ( !abre) {
+// El pes exacte de la relíquia és 4.21 Kg
+//MODO NO FUNCIONA EL RESET
+/*
+  if ( !manual) {
+    if ( peso > 3.9 && peso < 4.4) {
       #ifdef DEBUG_HX711
-        Serial.print("ENTRA en !abre");
-      #endif  
-      digitalWrite(ledVerd,HIGH);
-      digitalWrite(ledRoig,LOW);
-      digitalWrite(releElectro,LOW);     
-    }
-    abre=true;
-  }else {
-    #ifdef DEBUG_HX711
-      Serial.print("ENTRA en peso <> 4.0 - 4.5");
-    #endif
-    
-    if (abre) {
-      #ifdef DEBUG_HX711
-        Serial.print("ENTRA en abre");
+        Serial.print("ENTRA en peso = 3.9 - 4.4");
       #endif
-      digitalWrite(ledVerd,LOW);
-      digitalWrite(ledRoig,HIGH);
-      digitalWrite(releElectro,HIGH);       
+      
+      if ( !obri) {
+        #ifdef DEBUG_HX711
+          Serial.print("ENTRA en !obri");
+        #endif  
+        digitalWrite(ledBlanc,HIGH);
+        digitalWrite(ledRoig,LOW);
+        digitalWrite(releElectro,LOW);     
+      }
+      obri=true;
+    }else {
+      #ifdef DEBUG_HX711
+        Serial.print("ENTRA en peso <> 3.9 - 4.4");
+      #endif
+      
+      if (obri) {
+        #ifdef DEBUG_HX711
+          Serial.print("ENTRA en obri");
+        #endif
+        digitalWrite(ledBlanc,LOW);
+        digitalWrite(ledRoig,HIGH);
+        digitalWrite(releElectro,HIGH);       
+      }
+      obri=false;
     }
-    abre=false;
+  }
+*/
+
+
+  if ( !manual) {
+    if ( peso > -0.25 && peso < 0.05) {
+      #ifdef DEBUG_HX711
+        Serial.print("ENTRA en peso = -0.4 ... 0.1");
+      #endif
+      
+      if ( !obri) {
+        #ifdef DEBUG_HX711
+          Serial.print("ENTRA en !obri");
+        #endif  
+        digitalWrite(ledBlanc,HIGH);
+        digitalWrite(ledRoig,LOW);
+        digitalWrite(releElectro,LOW);     
+      }
+      obri=true;
+    }else {
+      #ifdef DEBUG_HX711
+        Serial.print("ENTRA en peso <> -0.4 ... 0.1");
+      #endif
+      
+      if (obri) {
+        #ifdef DEBUG_HX711
+          Serial.print("ENTRA en obri");
+        #endif
+        digitalWrite(ledBlanc,LOW);
+        digitalWrite(ledRoig,HIGH);
+        digitalWrite(releElectro,HIGH);       
+      }
+      obri=false;
+    }
   }
 
 
- /*
+ 
   if (!client.connected()) {
     reconnect();
   }  
   
   client.loop();
-  */
+  
   
 }

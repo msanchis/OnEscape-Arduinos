@@ -1635,7 +1635,7 @@ if (ultimMinut && ( millis() - iniciUltimMinut > 610000 )) {
          Serial.println(F("PASA: Estat = 5"));          
       }            
       prova5();//PROVA SIMON amb DISTANCIA variable
-      if (tempsProva5 > 0 && !primeraVegada && (millis() - tempsProva5) > 55000) {
+      if (tempsProva5 > 0 && !primeraVegada && (millis() - tempsProva5) > 45000) {
         client.publish("sala1/error","on");  //si volem que sone alarma de error
         errorReinici();
         tempsProva5=0;

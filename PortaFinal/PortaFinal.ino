@@ -174,8 +174,8 @@ void setup(){
   client.setServer(server, 1883);
   client.setCallback(callback);
 
-  Ethernet.begin(mac);   
-  //Ethernet.begin(mac,ip);
+  //Ethernet.begin(mac);   
+  Ethernet.begin(mac,ip);
   delay(1000);
   
 }

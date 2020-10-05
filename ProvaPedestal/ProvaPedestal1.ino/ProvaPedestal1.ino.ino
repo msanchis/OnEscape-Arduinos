@@ -6,7 +6,7 @@
 #include <SPI.h>
 #include <Ethernet.h> //Conexion Ethernet con carcasa W5100
 #include <PubSubClient.h> //Conexion MQTT
-#include <avr/wdt.h> // Incluir la librería de ATmel
+#include <avr/wdt.h> // Incluir la librería de ATmel para poder reiniciar remotamente
 
 
 //VARIABLES i objectes de la xarxa i client Mosquitto
