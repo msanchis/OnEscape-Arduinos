@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <MFRC522.h>
-#include <avr/wdt.h> // Incluir la librería de ATmel
+//#include <avr/wdt.h> // Incluir la librería de ATmel
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT 
@@ -43,6 +43,8 @@ long tempsFinal = 6000;
 long tempsObrirPorta = 44000;
 
 bool enviaRFID = false;
+
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 //Función para imprimir el contenido de un vector
 void printArray(byte *buffer, byte bufferSize) {
@@ -88,7 +90,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   res=strcmp(topic,"sala1/reset");
   int resu = strcmp(topic,"sala1/resetPortaFinal");  
  if (res == 0 || resu == 0) { //RESET PLACA
-     wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
+     //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
+     resetFunc();
   }
   res=strcmp(topic,"sala1/tancarportafinal");
   resu = strcmp(topic,"sala1/reinici");  

@@ -1,4 +1,4 @@
-
+ 
 //#include <SPI.h>
 #include <EthernetENC.h> //Conexion Ethernet con carcasa W5100
 #include <PubSubClient.h> //Conexion MQTT
@@ -7,7 +7,7 @@
 //VARIABLES i objectes de la xarxa i client Mosquitto
 byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xEF, 0x12};//mac del arduino
 IPAddress ip( 192, 168, 68, 20); //Ip fija del arduino
-IPAddress server( 192, 168, 68, 1); //Ip del server de mosquitto
+IPAddress server( 192, 168, 68, 56); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT
@@ -42,8 +42,7 @@ void setup() {
     Serial.println(Ethernet.localIP());
     Serial.println(F("Definició del PIN dels LEDS"));
   #endif
- 
-  
+   
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -60,7 +59,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   res=strcmp(topic,"sala2/resetLeds");
   if (res == 0) {    //RESET para toda la sala
      //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms           
-     resetFunc(); //llamada a la funcio de reseteig
+     resetFunc(); //llamada a la funcio de reset
   }
   res=strcmp(topic,"sala2/encenLeds");
   if (res == 0) {    //encendre llum blanca
@@ -75,9 +74,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (res == 0) {    //ejecuta secuencia luces tormenta
       
       analogWrite(PinLeds, 255);   
-      delay(1200);    
+      delay(300);    
       analogWrite(PinLeds, 100);    
-      delay(300);
+      delay(100);
+      analogWrite(PinLeds, 255);   
+      delay(200);    
       analogWrite(PinLeds,0);       
   }
   
@@ -85,16 +86,23 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (res == 0) {    //ejecuta secuencia luces tormenta
       
       analogWrite(PinLeds, 100);    
-      delay(300);     
+      delay(100);     
       analogWrite(PinLeds, 255);    
-      delay(800);    
+      delay(200);    
       analogWrite(PinLeds,0);
       delay(1200);
       analogWrite(PinLeds, 255);    
-      delay(400);    
+      delay(100);    
       analogWrite(PinLeds, 100);    
-      delay(300);
+      delay(200);
       analogWrite(PinLeds,0);        
+      delay(5000);
+      analogWrite(PinLeds, 100);    
+      delay(100);     
+      analogWrite(PinLeds, 255);    
+      delay(200);    
+      analogWrite(PinLeds,0);
+      
   }
 }
 

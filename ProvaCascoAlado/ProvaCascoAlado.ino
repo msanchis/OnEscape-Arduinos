@@ -12,7 +12,7 @@
  * 
  * Per pujar el pistó
  * RELE_ALIMENTACIO = LOW
- * RELE_INVERSOR1 = LOW 
+ * RELE_INVERSOR1 = LOW  
  * RELE_INVERSOR2 = LOW
  * 
  * Parat
@@ -25,7 +25,7 @@
 #include <SPI.h>
 #include <Ethernet.h> //Conexion Ethernet con carcasa W5100
 #include <PubSubClient.h> //Conexion MQTT
-#include <avr/wdt.h> // Incluir la librería de ATmel per a reiniciar el arduino
+//#include <avr/wdt.h> // Incluir la librería de ATmel per a reiniciar el arduino
 #include <EEPROM.h> // Per a guardar un valor boolean en la memoria no volatil (comensa)
 
 
@@ -39,7 +39,10 @@ unsigned long marcaTemps2 = 0;
 unsigned long marcaTemps3 = 0;
 unsigned long marcaTemps4 = 0;
 unsigned long marcaTemps5 = 0;
-unsigned long marcaTemps6 = 0; //reinici
+unsigned long marcaTemps6 = 0; //reinici (puja el pisto i variables a false)
+unsigned long marcaTemps7 = 0; //baixa el pisto del tot
+
+unsigned long marcaTemps8 = 0; //baixa un escalo (tempsTotal)
 
 unsigned long tiempoCerrada=0; //per medir el temps de la porta secreta tancada abans de començar video
 
@@ -48,6 +51,8 @@ boolean entra2 = false;
 boolean entra3 = false;
 boolean entra4 = false;
 boolean entra5 = false;
+
+boolean escalo = false;
 
 int pulsador = A0; //Definimos el puerto del final de carrera lógico
 boolean comensa = false;
@@ -59,7 +64,8 @@ const int RELE_INVERSOR1 = 3;       //activación del relé del positivo y cambi
 const int RELE_INVERSOR2 = 4;       //activación del relé del negativo y cambio de polaridad del pistón
 const int FINAL_CARRERA1 = 5;        //detección del estado del final de carrera 1 
 
-const int tempsTotal = 60000; //50-60 segs per a completar el recorregut
+//const int tempsTotal = 60000; //50-60 segs per a completar el recorregut
+//const int tempsEscalo = 11200; //11 segs per baixar un escalo
 
 //Variable per veure els prints al monitor
 boolean DEBUG = true;
@@ -71,6 +77,8 @@ IPAddress server(192, 168, 68, 1); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT 
+
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 void setup() {
   // initialize serial communications at 9600 bps:
@@ -130,6 +138,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     estat=6;
     reinici();        
   }
+  
   res=strcmp(topic,"sala1/casco1");
   if (res == 0) {    
     if (DEBUG) {
@@ -138,6 +147,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     estat=1;
     transicio1();        
   }
+  
   res=strcmp(topic,"sala1/casco2");
   if (res == 0) {
       if (DEBUG) {
@@ -146,6 +156,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       estat=2;
       transicio2();          
   }
+  
   res=strcmp(topic,"sala1/casco3");
   if (res == 0){      
       if (DEBUG) {
@@ -154,6 +165,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       estat=3;
       transicio3();          
   }
+  
   res=strcmp(topic,"sala1/casco4");
   if (res ==0) {      
       if (DEBUG) {
@@ -162,6 +174,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       estat=4;
       transicio4();
   }
+  
   res=strcmp(topic,"sala1/casco5");
   if (res == 0) {                     
       if (DEBUG) {
@@ -170,14 +183,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
       estat=5;
       transicio5();
   }
+  
   res=strcmp(topic,"sala1/error");
   if (res == 0) {                     
       if (DEBUG) {
         Serial.print(F("ENTRA a error"));
       }
-  //    estat=6;
-  //    reiniciError();
   }
+  
   res=strcmp(topic,"sala1/comensa");
   if (res == 0 ) {
     EEPROM.update(0,true);
@@ -190,16 +203,28 @@ void callback(char* topic, byte* payload, unsigned int length) {
       if (DEBUG) {
         Serial.print(F("ENTRA a reset o resetCascoAlado"));
       }
-     wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
+      resetFunc();
+     //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
   }
 
-  res=strcmp(topic,"sala1/baixa");
+  res=strcmp(topic,"sala1/baixaPlataforma");
   if (res == 0) {
+     if (DEBUG) {
+        Serial.print(F("ENTRA en baixaPlataforma"));
+     }
+     estat=7;
+     baixaDelTot();
+  }  
+
+  res=strcmp(topic,"sala1/baixaEscalo");
+   if (res == 0) {
       if (DEBUG) {
-        Serial.print(F("ENTRA en baixa"));
+        Serial.print(F("ENTRA en baixaEscalo"));
       }
-      baixaPisto();
+      estat=8;      
+      baixaUnEscalo();      
   }
+  
 }
 
 void transicio1(){
@@ -237,6 +262,26 @@ void transicio5(){
   marcaTemps5=millis();  
 }
 
+
+void baixaDelTot(){
+  if (DEBUG) {
+    Serial.print(F("ENTRA a baixaDelTot"));
+  }
+  marcaTemps7=millis();  
+  entra1=true;
+  entra2=true;
+  entra3=true;
+  entra4=true;
+  entra5=true;  
+}
+
+void baixaUnEscalo(){
+  if (DEBUG) {
+    Serial.print(F("ENTRA a baixaUnEscalo"));
+  }
+  marcaTemps8=millis(); 
+}
+
 void reinici(){
   if (DEBUG) {
     Serial.print(F("ENTRA a reinici"));
@@ -256,8 +301,6 @@ void reiniciError(){
   }
   marcaTemps6=millis();
 }
-
-
 
 void baixaPisto(){
     digitalWrite(RELE_ALIMENTACIO,LOW);
@@ -279,7 +322,7 @@ void paraPisto(){
 
 void reconnect() {
 
-  // Loop until we're reconnected
+  //Loop until we're reconnected
   while (!client.connected()) {
     if (DEBUG) {
       Serial.print(F("Intentant connecció MQTT..."));
@@ -300,7 +343,9 @@ void reconnect() {
       client.subscribe("sala1/reset"); 
       client.subscribe("sala1/resetCascoAlado"); 
       client.subscribe("sala1/comensa");
-      client.subscribe("sala1/baixa");
+      client.subscribe("sala1/baixaPlataforma");
+      client.subscribe("sala1/baixaEscalo");
+      
     } else {
       if (DEBUG) {
         Serial.print(F("FALLA, rc="));
@@ -325,22 +370,22 @@ void loop() {
   boolean puertaCerrada = digitalRead(puerta);
 
 
- if (DEBUG) {  
-  if ( cont1 == 0 || (cont1 % 5000 == 0)){
-    Serial.print(F("puertaCerrada: ")); 
-    Serial.println(puertaCerrada);
-    Serial.print("comensa: ");
-    Serial.println(comensa);
-    Serial.print("seHaAbierto: ");
-    Serial.println(seHaAbierto);
-    Serial.print("primeraVegada: ");
-    Serial.println(primeraVegada);
-    Serial.print("iniciado: ");
-    Serial.println(iniciado);
-    Serial.println("***************");
+   if (DEBUG) {  
+    if ( cont1 == 0 || (cont1 % 5000 == 0)){
+      Serial.print(F("puertaCerrada: ")); 
+      Serial.println(puertaCerrada);
+      Serial.print("comensa: ");
+      Serial.println(comensa);
+      Serial.print("seHaAbierto: ");
+      Serial.println(seHaAbierto);
+      Serial.print("primeraVegada: ");
+      Serial.println(primeraVegada);
+      Serial.print("iniciado: ");
+      Serial.println(iniciado);
+      Serial.println("***************");
+    }
+    cont1++;
   }
-  cont1++;
-}
  
   if (comensa && !puertaCerrada){
     seHaAbierto=true;      
@@ -353,9 +398,7 @@ void loop() {
     Serial.println("ENTRA en tiempoCerrada");
     tiempoCerrada=millis();        
     client.publish("sala1/comensaiportatancada","on");
-  }  //else {
-    //tiempoCerrada=0;    
-  //}
+  }
     
   if (comensa & puertaCerrada && seHaAbierto && !iniciado) {
 
@@ -393,7 +436,7 @@ void loop() {
     }
     cont++;
   }
- 
+
   switch(estat){
     case 1:      
       if (!para && !entra1 && millis() - marcaTemps1 < 11000 ) {
@@ -437,12 +480,27 @@ void loop() {
       break;
     case 6:
       if (millis() - marcaTemps6 < 60000) {
-        pujaPisto();
+        pujaPisto();        
       }else{
-        paraPisto();
+        paraPisto();        
         estat=0;
       }
       break;
+    case 7:
+      if (!para && millis() - marcaTemps7 < 60000) {
+        baixaPisto();
+      }else{
+        paraPisto();
+        estat=9;
+      }
+    case 8:
+      if (!para && millis() - marcaTemps8 < 11200) {
+        baixaPisto();
+      }else{
+        paraPisto();
+        if (estat < 6) estat++;        
+      }
+      
   }
   
   if (!client.connected()) {

@@ -6,13 +6,13 @@
 #include <SPI.h>
 #include <Ethernet.h> //Conexion Ethernet con carcasa W5100
 #include <PubSubClient.h> //Conexion MQTT
-#include <avr/wdt.h> // Incluir la librería de ATmel
+//#include <avr/wdt.h> // Incluir la librería de ATmel
 
 
 //VARIABLES i objectes de la xarxa i client Mosquitto
-byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xF0, 0x08};//mac del arduino
-IPAddress ip(192, 168, 68, 27); //Ip fija del arduino
-IPAddress server(192, 168, 68, 1); //Ip del server de mosquitto
+byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xF0, 0xFE};//mac del arduino
+IPAddress ip(192, 168, 68, 58); //Ip fija del arduino
+IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT
@@ -86,6 +86,8 @@ const int RelElectro8 = 9; // Pin encender luz6
 
 boolean pasaEstat=true; //Variable per comprovar que totes les reliquies estan al seu lloc per poder avançar
 
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
+
 void setup() {
   // initialize serial communications at 9600 bps:
   Serial.begin(9600);
@@ -151,11 +153,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   int res=strcmp(topic,"sala2/reset");
   if (res == 0) {    //RESET para toda la sala
-     wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms      
+     //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms      
+     resetFunc();
   }
   res=strcmp(topic,"sala2/resetPedestal");
   if (res == 0) {    //RESET pedestal
-     wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms      
+     //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms      
+     resetFunc();
   }
   res=strcmp(topic,"sala2/reiniciPedestal");
   if (res == 0) {    //REINICI Pedestal
@@ -248,7 +252,7 @@ void reconnect() {
   while (!client.connected()) {
     if (DEBUG) Serial.print(F("Attempting MQTT connection..."));
     // Attempt to connect
-    if (client.connect("Pedestal")) {
+    if (client.connect("Pedestal1")) {
       //Serial.println(F("connected"));      
 
       if (DEBUG) Serial.print(F("Subscribe to reset resetPedestal reiniciPedestal estat0Pedestal estat1Pedestal"));

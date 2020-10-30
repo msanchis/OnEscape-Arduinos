@@ -1,4 +1,4 @@
-/* Fecha Modificacio : 8/6/2020
+ /* Fecha Modificacio : 8/6/2020
  *  Instalat 8/6/2020
  * La variable estat s'utilitza per determinar en quin moment de la sala està actualment
  * Es poden arribar a cada estat directament amb els següents missatges 
@@ -24,7 +24,7 @@
 #include <Ethernet.h> //Conexion Ethernet con carcasa W5100
 #include <PubSubClient.h> //Conexion MQTT
 #include <NewPing.h>
-#include <avr/wdt.h> // Incluir la librería de ATmel
+//#include <avr/wdt.h> // Incluir la librería de ATmel
 // #include "Distancia.h"
  
 #define SONAR_NUM     5 // Number or sensors.
@@ -179,6 +179,8 @@ NewPing sonar[SONAR_NUM] = { // Sensor object array.
   NewPing(P4TriggerPin, P4EchoPin, MAX_DISTANCE), 
   NewPing(P5TriggerPin, P5EchoPin, MAX_DISTANCE), 
 };
+
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 void setup() {
   
@@ -581,7 +583,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   res=strcmp(topic,"sala1/reset");
   int resu = strcmp(topic,"sala1/resetSalaFinal");  
   if (res == 0 || resu == 0) { //RESET PLACA
-     wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
+     //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
+     resetFunc();
   }
 
 }
@@ -1537,18 +1540,17 @@ void errorReinici(){
   //estat=5;  
 }
 
-
-
 bool pasa3 = false; //Variable para que espere 44 segs en encendre llums general (cridar funcio fin())
 unsigned long tempsFin=0;
+
 void loop() {
 
 
-if (ultimMinut && ( millis() - iniciUltimMinut > 610000 )) {
-  estat=8;
-}
+  if (ultimMinut && ( millis() - iniciUltimMinut > 61000 )) {
+    estat=8;
+  }
 
- switch(estat){    
+  switch(estat){    
 
     case 0:
 
@@ -1622,7 +1624,7 @@ if (ultimMinut && ( millis() - iniciUltimMinut > 610000 )) {
       if (DEBUG2) {
          Serial.println(F("PASA: Estat = 4"));          
       }      
-      prova4(); //PROVA SIMON pas a pas amb DISTANCIA variable
+      prova4(); //PROVA SIMON pas a pas
       if (estat == 4 && tempsProva4 > 0 && (millis() - tempsProva4) > 28000) {
         client.publish("sala1/error","on");  //si volem que sone alarma de error
         errorReinici();
