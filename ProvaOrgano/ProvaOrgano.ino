@@ -11,7 +11,7 @@ byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0xFA};//mac del arduino
 IPAddress ip(192, 168, 68, 37); //Ip fija del arduino
 //IPAddress ip(192, 168, 1, 37); //Ip fija del arduino
 //IPAddress server(192, 168, 68, 1); //Ip del server de mosquitto
-IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
+IPAddress server(192, 168, 68, 56); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT 
@@ -19,26 +19,49 @@ PubSubClient client(ethClient); //cliente MQTT
 
 
 int Led = 13 ;// Definimos el pin de alarma visual
-int tecla1 = 22; // Definimos el pin de deteccion de llegada
-int tecla2 = 23;
-int tecla3 = 24;
-int tecla4 = 25;
-int tecla5 = 26; // Definimos el pin de deteccion de llegada
-int tecla6 = 27;
-int tecla7 = 28;
-int tecla8 = 29;
-int tecla9 = 30; // Definimos el pin de deteccion de llegada
-int tecla10 = 31;
-int tecla11 = 32;
-int tecla12 = 33;
+/*
+int tecla1 = 22; // 40 Definimos el pin de deteccion de llegada
+int tecla2 = 23; //
+int tecla3 = 24; // 22
+int tecla4 = 25; // 41
+int tecla5 = 26; // 31Definimos el pin de deteccion de llegada
+int tecla6 = 27; // 29
+int tecla7 = 28; // 30
+int tecla8 = 29; // 28
+int tecla9 = 30; // 36 Definimos el pin de deteccion de llegada
+int tecla10 = 31; // 39
+int tecla11 = 32; // 38
+int tecla12 = 33; // 37
 int tecla13 = 34; // Definimos el pin de deteccion de llegada
-int tecla14 = 35;
-int tecla15 = 36;
-int tecla16 = 37;
-int tecla17 = 38; // Definimos el pin de deteccion de llegada
-int tecla18 = 39;
-int tecla19 = 40;
-int tecla20 = 41;
+int tecla14 = 35; // 33
+int tecla15 = 36; // 35
+int tecla16 = 37; // 32
+int tecla17 = 38; // 25 Definimos el pin de deteccion de llegada
+int tecla18 = 39; // 27
+int tecla19 = 40; // 26
+int tecla20 = 41; // 24
+*/
+int tecla1 = 40; // 40 Definimos el pin de deteccion de llegada
+int tecla2 = 23; //
+int tecla3 = 22; // 22
+int tecla4 = 41; // 41
+int tecla5 = 31; // 31Definimos el pin de deteccion de llegada
+int tecla6 = 29; // 29
+int tecla7 = 30; // 30
+int tecla8 = 28; // 28
+int tecla9 = 36; // 36 Definimos el pin de deteccion de llegada
+int tecla10 = 39; // 39
+int tecla11 = 38; // 38
+int tecla12 = 37; // 37
+int tecla13 = 34; // Definimos el pin de deteccion de llegada
+int tecla14 = 33; // 33
+int tecla15 = 35; // 35
+int tecla16 = 32; // 32
+int tecla17 = 25; // 25 Definimos el pin de deteccion de llegada
+int tecla18 = 27; // 27
+int tecla19 = 26; // 26
+int tecla20 = 24; // 24
+
 
 boolean AlarmaTecla1; // Definimos el nombre de la variable donde vamos a grabar las lecturas
 boolean AlarmaTecla2;
@@ -239,12 +262,14 @@ void loop ()
   if (AlarmaTecla1) {    
     if (!EstadoTecla1 && (millis()-tiempoTecla1) > 300 ) {
       client.publish("sala2/tecla1","1");
+      client.publish("sala2/tecla","1");
       Serial.println("tecla1 cambio de estado a 1");      
       EstadoTecla1=1;
     }
   } else {
     if (EstadoTecla1) {
       client.publish("sala2/tecla1","0");
+      client.publish("sala2/tecla","01");
       Serial.println("tecla1 cambio de estado a 0");
       EstadoTecla1=0;   
       tiempoTecla1=millis();
@@ -254,12 +279,14 @@ void loop ()
  if (AlarmaTecla2) {    
     if (!EstadoTecla2 && (millis()-tiempoTecla2) > 300) {
       client.publish("sala2/tecla2","1");
+      client.publish("sala2/tecla","2");
       Serial.println("tecla2 cambio de estado a 1");      
       EstadoTecla2=1;
     }
   } else {
     if (EstadoTecla2) {
       client.publish("sala2/tecla2","0");
+      client.publish("sala2/tecla","02");
       Serial.println("tecla2 cambio de estado a 0");
       EstadoTecla2=0;   
       tiempoTecla2=millis();
@@ -269,12 +296,14 @@ void loop ()
  if (AlarmaTecla3 && (millis()-tiempoTecla3) > 300) {    
     if (!EstadoTecla3) {
       client.publish("sala2/tecla3","1");
+      client.publish("sala2/tecla","3");
       Serial.println("tecla3 cambio de estado a 1");      
       EstadoTecla3=1;
     }
   } else {
     if (EstadoTecla3) {
       client.publish("sala2/tecla3","0");
+      client.publish("sala2/tecla","03");
       Serial.println("tecla3 cambio de estado a 0");
       EstadoTecla3=0;   
       tiempoTecla3=millis();
@@ -284,12 +313,14 @@ void loop ()
   if (AlarmaTecla4 && (millis()-tiempoTecla4) > 300) {    
     if (!EstadoTecla4) {
       client.publish("sala2/tecla4","1");
+      client.publish("sala2/tecla","4");
       Serial.println("tecla4 cambio de estado a 1");      
       EstadoTecla4=1;
     }
   } else {
     if (EstadoTecla4) {
       client.publish("sala2/tecla4","0");
+      client.publish("sala2/tecla","04");
       Serial.println("tecla4 cambio de estado a 0");
       EstadoTecla4=0;   
       tiempoTecla4=millis();
@@ -299,12 +330,14 @@ void loop ()
   if (AlarmaTecla5) {    
     if (!EstadoTecla5 && (millis()-tiempoTecla5) > 300 ) {
       client.publish("sala2/tecla5","1");
+      client.publish("sala2/tecla","5");
       Serial.println("tecla5 cambio de estado a 1");      
       EstadoTecla5=1;
     }
   } else {
     if (EstadoTecla5) {
       client.publish("sala2/tecla5","0");
+      client.publish("sala2/tecla","05");
       Serial.println("tecla5 cambio de estado a 0");
       EstadoTecla5=0;   
       tiempoTecla5=millis();
@@ -314,12 +347,14 @@ void loop ()
  if (AlarmaTecla6) {    
     if (!EstadoTecla6 && (millis()-tiempoTecla6) > 300) {
       client.publish("sala2/tecla6","1");
+      client.publish("sala2/tecla","6");
       Serial.println("tecla6 cambio de estado a 1");      
       EstadoTecla6=1;
     }
   } else {
     if (EstadoTecla6) {
       client.publish("sala2/tecla6","0");
+      client.publish("sala2/tecla","06");
       Serial.println("tecla6 cambio de estado a 0");
       EstadoTecla6=0;   
       tiempoTecla6=millis();
@@ -329,12 +364,14 @@ void loop ()
  if (AlarmaTecla7 && (millis()-tiempoTecla7) > 300) {    
     if (!EstadoTecla7) {
       client.publish("sala2/tecla7","1");
+      client.publish("sala2/tecla","7");
       Serial.println("tecla7 cambio de estado a 1");      
       EstadoTecla7=1;
     }
   } else {
     if (EstadoTecla7) {
       client.publish("sala2/tecla7","0");
+      client.publish("sala2/tecla","07");
       Serial.println("tecla7 cambio de estado a 0");
       EstadoTecla7=0;   
       tiempoTecla7=millis();
@@ -344,12 +381,14 @@ void loop ()
   if (AlarmaTecla8 && (millis()-tiempoTecla8) > 300) {    
     if (!EstadoTecla8) {
       client.publish("sala2/tecla8","1");
+      client.publish("sala2/tecla","8");
       Serial.println("tecla8 cambio de estado a 1");      
       EstadoTecla8=1;
     }
   } else {
     if (EstadoTecla8) {
       client.publish("sala2/tecla8","0");
+      client.publish("sala2/tecla","08");
       Serial.println("tecla8 cambio de estado a 0");
       EstadoTecla8=0;   
       tiempoTecla8=millis();
@@ -358,11 +397,15 @@ void loop ()
 
   if (AlarmaTecla9) {    
     if (!EstadoTecla9 && (millis()-tiempoTecla9) > 300 ) {
+      client.publish("sala2/tecla9","1");
+      client.publish("sala2/tecla","9");
       Serial.println("tecla9 cambio de estado a 1");      
       EstadoTecla9=1;
     }
   } else {
     if (EstadoTecla9) {
+      client.publish("sala2/tecla9","0");
+      client.publish("sala2/tecla","09");
       Serial.println("tecla9 cambio de estado a 0");
       EstadoTecla9=0;   
       tiempoTecla9=millis();
@@ -371,11 +414,15 @@ void loop ()
 
  if (AlarmaTecla10) {    
     if (!EstadoTecla10 && (millis()-tiempoTecla10) > 300) {
+      client.publish("sala2/tecla10","1");
+      client.publish("sala2/tecla","10");
       Serial.println("tecla10 cambio de estado a 1");      
       EstadoTecla10=1;
     }
   } else {
     if (EstadoTecla10) {
+      client.publish("sala2/tecla10","0");
+      client.publish("sala2/tecla","010");
       Serial.println("tecla10 cambio de estado a 0");
       EstadoTecla10=0;   
       tiempoTecla10=millis();
@@ -384,11 +431,15 @@ void loop ()
 
  if (AlarmaTecla11 && (millis()-tiempoTecla11) > 300) {    
     if (!EstadoTecla11) {
+      client.publish("sala2/tecla11","1");
+      client.publish("sala2/tecla","11");
       Serial.println("tecla11 cambio de estado a 1");      
       EstadoTecla11=1;
     }
   } else {
     if (EstadoTecla11) {
+      client.publish("sala2/tecla11","0");
+      client.publish("sala2/tecla","011");
       Serial.println("tecla11 cambio de estado a 0");
       EstadoTecla11=0;   
       tiempoTecla11=millis();
@@ -397,11 +448,15 @@ void loop ()
 
   if (AlarmaTecla12 && (millis()-tiempoTecla12) > 300) {    
     if (!EstadoTecla12) {
+      client.publish("sala2/tecla12","1");
+      client.publish("sala2/tecla","12");
       Serial.println("tecla12 cambio de estado a 1");      
       EstadoTecla12=1;
     }
   } else {
     if (EstadoTecla12) {
+      client.publish("sala2/tecla12","0");
+      client.publish("sala2/tecla","012");
       Serial.println("tecla12 cambio de estado a 0");
       EstadoTecla12=0;   
       tiempoTecla12=millis();
@@ -410,11 +465,15 @@ void loop ()
 
   if (AlarmaTecla13) {    
     if (!EstadoTecla13 && (millis()-tiempoTecla13) > 300 ) {
+      client.publish("sala2/tecla13","1");
+      client.publish("sala2/tecla","13");
       Serial.println("tecla13 cambio de estado a 1");      
       EstadoTecla13=1;
     }
   } else {
     if (EstadoTecla13) {
+      client.publish("sala2/tecla13","0");
+      client.publish("sala2/tecla","013");
       Serial.println("tecla13 cambio de estado a 0");
       EstadoTecla13=0;   
       tiempoTecla13=millis();
@@ -423,11 +482,15 @@ void loop ()
 
  if (AlarmaTecla14) {    
     if (!EstadoTecla14 && (millis()-tiempoTecla14) > 300) {
+      client.publish("sala2/tecla14","1");
+      client.publish("sala2/tecla","14");
       Serial.println("tecla14 cambio de estado a 1");      
       EstadoTecla14=1;
     }
   } else {
     if (EstadoTecla14) {
+      client.publish("sala2/tecla14","0");
+      client.publish("sala2/tecla","014");
       Serial.println("tecla14 cambio de estado a 0");
       EstadoTecla14=0;   
       tiempoTecla14=millis();
@@ -436,11 +499,15 @@ void loop ()
 
  if (AlarmaTecla15 && (millis()-tiempoTecla15) > 300) {    
     if (!EstadoTecla15) {
+      client.publish("sala2/tecla15","1");
+      client.publish("sala2/tecla","15");
       Serial.println("tecla15 cambio de estado a 1");      
       EstadoTecla15=1;
     }
   } else {
     if (EstadoTecla15) {
+      client.publish("sala2/tecla15","0");
+      client.publish("sala2/tecla","015");
       Serial.println("tecla15 cambio de estado a 0");
       EstadoTecla15=0;   
       tiempoTecla15=millis();
@@ -449,11 +516,15 @@ void loop ()
 
   if (AlarmaTecla16 && (millis()-tiempoTecla16) > 300) {    
     if (!EstadoTecla16) {
+      client.publish("sala2/tecla16","1");
+      client.publish("sala2/tecla","16");
       Serial.println("tecla16 cambio de estado a 1");      
       EstadoTecla16=1;
     }
   } else {
     if (EstadoTecla16) {
+      client.publish("sala2/tecla16","0");
+      client.publish("sala2/tecla","016");
       Serial.println("tecla16 cambio de estado a 0");
       EstadoTecla16=0;   
       tiempoTecla16=millis();
@@ -462,11 +533,15 @@ void loop ()
 
   if (AlarmaTecla17) {    
     if (!EstadoTecla17 && (millis()-tiempoTecla17) > 300 ) {
+      client.publish("sala2/tecla17","1");
+      client.publish("sala2/tecla","17");
       Serial.println("tecla17 cambio de estado a 1");      
       EstadoTecla17=1;
     }
   } else {
     if (EstadoTecla17) {
+      client.publish("sala2/tecla17","0");
+      client.publish("sala2/tecla","017");
       Serial.println("tecla17 cambio de estado a 0");
       EstadoTecla17=0;   
       tiempoTecla17=millis();
@@ -475,11 +550,15 @@ void loop ()
 
  if (AlarmaTecla18) {    
     if (!EstadoTecla18 && (millis()-tiempoTecla18) > 300) {
+      client.publish("sala2/tecla18","1");
+      client.publish("sala2/tecla","18");
       Serial.println("tecla18 cambio de estado a 1");      
       EstadoTecla18=1;
     }
   } else {
     if (EstadoTecla18) {
+      client.publish("sala2/tecla18","0");
+      client.publish("sala2/tecla","018");
       Serial.println("tecla18 cambio de estado a 0");
       EstadoTecla18=0;   
       tiempoTecla18=millis();
@@ -488,11 +567,15 @@ void loop ()
 
  if (AlarmaTecla19 && (millis()-tiempoTecla19) > 300) {    
     if (!EstadoTecla19) {
+      client.publish("sala2/tecla19","1");
+      client.publish("sala2/tecla","19");
       Serial.println("tecla19 cambio de estado a 1");      
       EstadoTecla19=1;
     }
   } else {
     if (EstadoTecla19) {
+      client.publish("sala2/tecla19","0");
+      client.publish("sala2/tecla","019");
       Serial.println("tecla19 cambio de estado a 0");
       EstadoTecla19=0;   
       tiempoTecla19=millis();
@@ -501,11 +584,15 @@ void loop ()
 
   if (AlarmaTecla20 && (millis()-tiempoTecla20) > 300) {    
     if (!EstadoTecla20) {
+      client.publish("sala2/tecla20","1");
+      client.publish("sala2/tecla","20");
       Serial.println("tecla20 cambio de estado a 1");      
       EstadoTecla20=1;
     }
   } else {
     if (EstadoTecla20) {
+      client.publish("sala2/tecla20","0");
+      client.publish("sala2/tecla","020");
       Serial.println("tecla20 cambio de estado a 0");
       EstadoTecla20=0;   
       tiempoTecla20=millis();
@@ -520,4 +607,4 @@ void loop ()
   }
   client.loop();
   
-}
+} 

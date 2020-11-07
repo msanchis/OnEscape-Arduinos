@@ -265,10 +265,10 @@ void transicio5(){
 
 void baixaDelTot(){
   if (DEBUG) {
-    Serial.print(F("ENTRA a baixaDelTot"));
+    Serial.println(F("ENTRA a baixaDelTot"));
   }
   marcaTemps7=millis();  
-  entra1=true;
+   entra1=true;
   entra2=true;
   entra3=true;
   entra4=true;
@@ -277,14 +277,14 @@ void baixaDelTot(){
 
 void baixaUnEscalo(){
   if (DEBUG) {
-    Serial.print(F("ENTRA a baixaUnEscalo"));
+    Serial.println(F("ENTRA a baixaUnEscalo"));
   }
   marcaTemps8=millis(); 
 }
 
 void reinici(){
   if (DEBUG) {
-    Serial.print(F("ENTRA a reinici"));
+    Serial.println(F("ENTRA a reinici"));
   }
   marcaTemps6=millis();
   entra1=false;
@@ -297,7 +297,7 @@ void reinici(){
 
 void reiniciError(){
   if (DEBUG) {
-    Serial.print(F("ENTRA a reiniciError"));
+    Serial.println(F("ENTRA a reiniciError"));
   }
   marcaTemps6=millis();
 }
@@ -333,7 +333,7 @@ void reconnect() {
       if (DEBUG) {
         Serial.println(F("connectat MQTT"));      
       }
-      client.subscribe("sala1/reinici");
+      client.subscribe( "sala1/reinici");
       client.subscribe("sala1/casco1");
       client.subscribe("sala1/casco2");
       client.subscribe("sala1/casco3");
@@ -370,7 +370,7 @@ void loop() {
   boolean puertaCerrada = digitalRead(puerta);
 
 
-   if (DEBUG) {  
+  /* if (DEBUG) {  
     if ( cont1 == 0 || (cont1 % 5000 == 0)){
       Serial.print(F("puertaCerrada: ")); 
       Serial.println(puertaCerrada);
@@ -385,7 +385,7 @@ void loop() {
       Serial.println("***************");
     }
     cont1++;
-  }
+  }*/
  
   if (comensa && !puertaCerrada){
     seHaAbierto=true;      
@@ -430,7 +430,7 @@ void loop() {
     if ( cont == 0 || (cont % 40000 == 0)){
       client.publish("sala1/finalcarrera","on");    
        if (DEBUG) {
-          Serial.print(F("FINAL de CARRERA: "));          
+          Serial.println(F("FINAL de CARRERA: "));          
         }
       paraPisto();
     }
