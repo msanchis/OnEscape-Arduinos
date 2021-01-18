@@ -54,7 +54,7 @@ boolean entra5 = false;
 
 boolean escalo = false;
 
-int pulsador = A0; //Definimos el puerto del final de carrera lógico
+int pulsador = 8; //Definimos el puerto del final de carrera lógico
 boolean comensa = false;
 int puerta = 7; //Definimos el puerto para el sensor de puerta abierto o cerrado
 
@@ -422,10 +422,10 @@ void loop() {
         EEPROM.update(0,false);
      }
   }
+  /*
+  boolean estado = digitalRead(pulsador); //Leemos el estado del interruptor  
   
-  boolean estado = analogRead(pulsador); //Leemos el estado del interruptor  
-  
-  if (!estado) {
+  if (estado) {
     para=true;   
     if ( cont == 0 || (cont % 40000 == 0)){
       client.publish("sala1/finalcarrera","on");    
@@ -436,7 +436,7 @@ void loop() {
     }
     cont++;
   }
-
+*/
   switch(estat){
     case 1:      
       if (!para && !entra1 && millis() - marcaTemps1 < 11000 ) {
@@ -493,6 +493,7 @@ void loop() {
         paraPisto();
         estat=9;
       }
+      break;
     case 8:
       if (!para && millis() - marcaTemps8 < 11200) {
         baixaPisto();
@@ -500,7 +501,7 @@ void loop() {
         paraPisto();
         if (estat < 6) estat++;        
       }
-      
+      break;
   }
   
   if (!client.connected()) {

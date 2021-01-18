@@ -1,7 +1,55 @@
+/*
+ * Arduino MEGA (interior Pedestal <al mig de la sala2>)
+ * 
+ * 6 electroimans 20 kgs
+ * 1 electroiman 60 kgs
+ * 7 llums/leds 12V
+ * 1 final de carrera/pulsador
+ * 
+ **********************
+ * 
+ * Per reseteja el dispositiu
+ *  sala2/reset
+ *  sala2/resetPedestal
+ *  
+ *  Per reiniciar estat pedestal
+ *  sala2/reiniciPedestal
+ * 
+ * Per establir dificultat de la sala (futur)
+ *  sala2/dificultat
+ * 
+ * Per controlar els 7 electroimans i llums del pedestal
+ *  sala2/estat0Pedestal
+ *  sala2/estat1Pedestal
+ *  sala2/reliquia1Pedestal
+ *  sala2/reliquia2Pedestal
+ *  sala2/reliquia3Pedestal    
+ *  sala2/reliquia4Pedestal
+ *  sala2/reliquia5Pedestal
+ *  sala2/reliquia6Pedestal
+ *  sala2/llumFinalPedestal
+ * 
+ * Per controlar la prova de la pared (sensorPuzzle) al pin A0
+ * 
+ *  comensa en estat=0 i pasa a estat=1
+ * 
+ * **********************
+ * 
+ * Events que envia
+ * 
+ * Per activar la bascula despres de reliquia1
+ *   sala2/activaBascula
+ * 
+ * Per desactivar bascula despres de reliquia2
+ *   sala2/desactivaBascula
+ * 
+ * Per activar el organ despres de reliquia5
+ *   sala2/activaOrgan
+ *   
+ * 
+ *   
+ */
 
-//TODO Programar estats i tindre en compte sensors sempre per poder passar d'estar a més de encendre o apagar llums
-
-//      Estat a cada reliquia per no enviar digitalWrite en cada volta del loop
 
 #include <SPI.h>
 #include <Ethernet.h> //Conexion Ethernet con carcasa W5100
@@ -11,8 +59,8 @@
 
 //VARIABLES i objectes de la xarxa i client Mosquitto
 byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xF0, 0xFE};//mac del arduino
-IPAddress ip(192, 168, 68, 58); //Ip fija del arduino
-IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
+IPAddress ip(192, 168, 68, 202); //Ip fija del arduino
+IPAddress server(192, 168, 68, 56); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT
@@ -102,7 +150,7 @@ void setup() {
   //Ethernet.begin(mac);   
   Ethernet.begin(mac,ip);
       
-  delay(100); //Cambio de 1000 a 100
+  delay(1000); //Cambio de 1000 a 100
   if (DEBUG) {
     Serial.println(F("connectant..."));
     Serial.println(Ethernet.localIP());
@@ -195,7 +243,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
  
   res=strcmp(topic,"sala2/estat1Pedestal");
-  if (res == 0) {    //RESET pedestal
+  if (res == 0) {    //Primer Rele
+     digitalWrite(RelElectro1,LOW);
      estat=1;
   }
   res=strcmp(topic,"sala2/estat0Pedestal");
@@ -453,6 +502,9 @@ if (estat < 7) {
         if (DEBUG) Serial.println("RelElectro3 LOW");
         digitalWrite(RelElectro3,LOW); //Desactivem electroiman1 i encenem llum 6
         estat=3;
+        //Enviem publicacio segona reliquia activada (ENCÉN LLUM BASCULA)
+        client.publish("sala2/activaBascula","ON");
+        
       }else digitalWrite(RelElectro3,HIGH);
       break;
     
@@ -470,6 +522,8 @@ if (estat < 7) {
          if (DEBUG) Serial.println("RelElectro4 LOW");
         digitalWrite(RelElectro4,LOW); //Desactivem electroiman5 i encenem llum 1
         estat=4;
+        //Enviem publicacio tercera reliquia activada
+        client.publish("sala2/desactivaBascula","ON");
       }else digitalWrite(RelElectro4,HIGH);
       break;
 
@@ -503,6 +557,8 @@ if (estat < 7) {
       if (marcaTemps5 > 0 && (millis()-marcaTemps5 > 300)){
          if (DEBUG) Serial.println("RelElectro6 LOW");
         digitalWrite(RelElectro6,LOW); //Desactivem electroiman6 i encenem llum 3
+        //Enviem publicacio segona reliquia activada (ENCÉN LLUM BASCULA)
+        client.publish("sala2/activaOrgan","ON");
         estat=6;
       }else digitalWrite(RelElectro6,HIGH);
       break;
