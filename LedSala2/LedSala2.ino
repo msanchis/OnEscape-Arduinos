@@ -62,14 +62,14 @@
 #include <PubSubClient.h> //Conexio MQTT
 
 //VARIABLES i objectes de la xarxa i client Mosquitto
-byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xEF, 0x12};//mac del arduino
-IPAddress ip( 192, 168, 68, 203); //Ip fija del arduino
-IPAddress server( 192, 168, 68, 56); //Ip del server de mosquitto
+const byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xEF, 0x12};//mac del arduino
+const IPAddress ip( 192, 168, 68, 203); //Ip fija del arduino
+const IPAddress server( 192, 168, 68, 56); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT
 
-#define DEBUG_LED
+//#define DEBUG_LED //Comentar quant no s'utilitze el DEBUG per espai en memòria dinàmica
 
 float llum=0;
 const int PinLeds= 9; //Pin per encendre i apagar els leds de la sala central
@@ -84,6 +84,8 @@ const int RELE_INVERSOR1 = 4;       //activació del relé del positiu y canvi d
 const int RELE_INVERSOR2 = 3;       //activació del relé del negatiu y canvi de polaritat del pistó
 
 const int RELE_ELECTROIMAN = 2;   //electroiman porta sala punxos
+
+const int RELE_LLUM_ULTRA = 13; //llum ultravioleta sala punxos
 
 int estat=0; //Variable per determinar el estat de  la baixada del sostre
              //estat = 0 (no ha comensat)
@@ -148,11 +150,14 @@ void setup() {
   digitalWrite(RELE_INVERSOR1,HIGH);
   digitalWrite(RELE_INVERSOR2,HIGH);
 
-  pinMode(RELE_ANTORXES,OUTPUT);                // Pin relé antorxes sala
+  pinMode(RELE_ANTORXES,OUTPUT);                // Pin relé antorxes sala (tancat per defecte, sense Arduino)
   digitalWrite(RELE_ANTORXES,LOW);
 
-  pinMode(RELE_ELECTROIMAN,OUTPUT);             //Pin relé electroiman Porta Puntxos
+  pinMode(RELE_ELECTROIMAN,OUTPUT);             //Pin relé electroiman Porta Puntxos (obert per defecte, sense Arduino)
   digitalWrite(RELE_ELECTROIMAN ,HIGH);
+
+  pinMode(RELE_LLUM_ULTRA,OUTPUT);              //Pin relé ultravioleta Sala Puntxos (obert per defecte, sense Arduino)
+  digitalWrite(RELE_LLUM_ULTRA, LOW);
 
   pinMode(FinalCarrera, INPUT_PULLUP); //Declaramos el pin como entrada
   
@@ -188,6 +193,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
   res=strcmp(topic,"sala2/apagaLeds");
   if (res == 0) {    //apagar llum
       analogWrite(PinLeds,0);
+  }
+
+  res=strcmp(topic,"sala2/encenUltraPunxos");
+  if (res == 0) {    //encendre llum blanca
+      digitalWrite(RELE_LLUM_ULTRA,HIGH);
+  }
+  res=strcmp(topic,"sala2/apagaUltraPunxos");
+  if (res == 0) {    //apagar llum
+      digitalWrite(RELE_LLUM_ULTRA,LOW);
   }
 
   res=strcmp(topic,"sala2/encenAntorxes");
@@ -239,9 +253,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_LED
         Serial.println(F("Entra a ACORD CORRECTE PARA Pisto i ObriPortaPunxos"));
      #endif
-
     
-     digitalWrite(RELE_ELECTROIMAN,LOW);
+     digitalWrite(RELE_ELECTROIMAN,LOW); //obri porta puntxos
+     digitalWrite(RELE_LLUM_ULTRA,LOW); //apaga llum ultravioleta
      paraPisto();
      estat=6;    
   }
@@ -322,8 +336,9 @@ void reconnect() {
       client.subscribe("sala2/paraSostre");
       client.subscribe("sala2/obriPortaPuntxos");
       client.subscribe("sala2/tancaPortaPuntxos");
-      
-           
+      client.subscribe("sala2/encenUltraPunxos");
+      client.subscribe("sala2/apagaUltraPunxos");            
+                
     } else {
       #ifdef DEBUG_LED
         Serial.print(F(" failed, rc="));
@@ -355,7 +370,8 @@ void loop() {
     iniciaSostre=true;  
     marcaTemps1=millis();
     estat=1;
-    baixaPisto();
+    baixaPisto();    
+    digitalWrite(RELE_LLUM_ULTRA,HIGH); //encendre llum ultravioleta    
   }
 
   if (estat > 0){

@@ -55,13 +55,25 @@ PubSubClient client(ethClient); //cliente MQTT
 byte pinData = A0;
 byte pinClk = A1;
 
-int releElectroIman = 5; //encén els leds i tanca electroiman o al revés
-int releUltravioleta = 6; // encén la llum ultavioleta 220V
-int releCamareWifi = 7; // encén la càmera wifi
+const int releElectroIman = 5; //encén els leds i tanca electroiman o al revés
 
-int ledRed = 8;
-int ledGreen = 9;
-int ledBlue = 10;
+const int releImanPorta = 8; //activa el electroiman per tancar porta
+const int releUltravioleta12 = 9; // encén la llum ultavioleta 12V
+const int releUltravioleta220 = 7; //encén la llum ultravioleta 220V
+const int releCameraWifi = 6; // encén la càmera wifi
+
+/*
+const int ledRed = 8;
+const int ledGreen = 9;
+const int ledBlue = 10;
+*/
+const int ledBlanc = 3;
+const int ledRoig = 4;
+
+bool iniciaPasillo=false;
+
+//const int pinFinalCarrera=2;
+const int pinFinalCarrera=A5;
 
 boolean obri = false; //Variable per assignar el estat del electroiman (porta)
 boolean manual = false; //Variable per canviar al mode manual i poder obrir i tancar la porta remotament
@@ -102,8 +114,25 @@ void setup() {
   pinMode(ledRoig,OUTPUT);
   pinMode(releElectroIman,OUTPUT);   
 
+  pinMode(releImanPorta,OUTPUT);
+  delay(3);
+  digitalWrite(releImanPorta,HIGH);
+  
+  pinMode(releUltravioleta12,OUTPUT);
+  delay(3);
+  digitalWrite(releUltravioleta12,LOW);
+  
+  pinMode(releUltravioleta220,OUTPUT);
+  digitalWrite(releUltravioleta220,HIGH);
+  
+  pinMode(releCameraWifi,OUTPUT);
+  digitalWrite(releCameraWifi,LOW);
+
+  pinMode(pinFinalCarrera,INPUT_PULLUP);
+    
   // Iniciar sensor
   bascula.begin(pinData, pinClk);
+  
   // Aplicar la calibración
   bascula.set_scale(CALIBRACION);
   // Iniciar la tara
@@ -169,14 +198,80 @@ void callback(char* topic, byte* payload, unsigned int length) {
     estat=1;
   }
 
-    res=strcmp(topic,"sala2/desactivaBascula");
+  res=strcmp(topic,"sala2/desactivaBascula");
   if (res == 0) {
     #ifdef DEBUG_HX711
       Serial.print(F("Estat = 2 desactiva Bascula "));
     #endif
     digitalWrite(releElectroIman,LOW);
+    digitalWrite(ledBlanc,LOW);
+    digitalWrite(ledRoig,LOW);
     estat=2;
   }
+
+  res=strcmp(topic,"sala2/tancaPortaCara");
+  if (res==0) {
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a Tanca Porta Cara Veritat "));
+    #endif
+    digitalWrite(releImanPorta,HIGH);    
+  }
+
+  res=strcmp(topic,"sala2/obriPortaCara");
+  if (res==0) {
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a OBRI Porta Cara Veritat "));
+    #endif
+    digitalWrite(releImanPorta,LOW);    
+  }
+
+  res=strcmp(topic,"sala2/apagaUltra220");
+  if (res==0) {
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a Apaga LLum Ultravioleta 220V"));
+    #endif
+    digitalWrite(releUltravioleta220, HIGH);    
+  }
+
+  res=strcmp(topic,"sala2/encenUltra220");
+  if (res==0) {
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a Encen Llum Ultravioleta 220V "));
+    #endif
+    digitalWrite(releUltravioleta220,LOW);    
+  }
+
+  res=strcmp(topic,"sala2/apagaUltra12");
+  if (res==0) {
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a Apaga LLum Ultravioleta 12V"));
+    #endif
+    digitalWrite(releUltravioleta12,LOW);    
+  }
+
+  res=strcmp(topic,"sala2/encenUltra12");
+  if (res==0) {
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a Encen Llum Ultravioleta 12V"));
+    #endif
+    digitalWrite(releUltravioleta12,HIGH);    
+  }
+
+  res=strcmp(topic,"sala2/apagaCamara");
+  if (res==0) {
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a Apaga Camara"));
+    #endif
+    digitalWrite(releCameraWifi,HIGH);    
+  }
+
+  res=strcmp(topic,"sala2/encenCamara");
+  if (res==0) {
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a Encen Camara"));
+    #endif
+    digitalWrite(releCameraWifi,LOW);    
+  }     
   
 }
 
@@ -187,10 +282,9 @@ void reconnect() {
       Serial.print(F("Attempting MQTT connection..."));
     #endif
     // Attempt to connect
-    if (client.connect("Bascula")) {
-      //Serial.println(F("connected"));      
+    if (client.connect("Bascula")) {      
       #ifdef DEBUG_HX711 
-        Serial.print(F("Subscribe to reset resetBascula"));
+        Serial.print(F("Subscribe to reset, resetBascula, basculaObrir, basculaTancar, basculaModoManual, basculaModoAutomatica, activaBascula, desactivaBascula, encenUltra220, encenUltra12, encenCamara"));
       #endif
       client.subscribe("sala2/reset");
       client.subscribe("sala2/resetBascula");  
@@ -200,6 +294,14 @@ void reconnect() {
       client.subscribe("sala2/basculaModoAutomatic");
       client.subscribe("sala2/activaBascula");
       client.subscribe("sala2/desactivaBascula");
+      client.subscribe("sala2/encenUltra220");
+      client.subscribe("sala2/encenUltra12");
+      client.subscribe("sala2/encenCamara");
+      client.subscribe("sala2/apagaUltra220");
+      client.subscribe("sala2/apagaUltra12");
+      client.subscribe("sala2/apagaCamara");
+      client.subscribe("sala2/obriPortaCara");
+      client.subscribe("sala2/tancaPortaCara");
     
     } else {
       #ifdef DEBUG_HX711
@@ -260,6 +362,22 @@ void loop() {
       }
       break;
 
+  }
+
+  boolean tancaPorta = digitalRead(pinFinalCarrera);
+
+  if (!tancaPorta && !iniciaPasillo) {
+    #ifdef DEBUG_HX711
+      
+      Serial.println(F("[FinalCarrera] tanca Porta Cara Veritat"));
+    #endif
+    //Activem l'electroiman
+    client.publish("sala2/tancaPortaCaraVeritat","on");
+
+    digitalWrite(releImanPorta,HIGH); //Activem l'electroiman
+    digitalWrite(releUltravioleta12,HIGH); //Activem la llum ultravioleta
+    digitalWrite(releUltravioleta220,HIGH); //Activem la llum ultravioleta
+    iniciaPasillo=true;   //Per a que no entre de nou en aquest if
   }
  
   if (!client.connected()) {

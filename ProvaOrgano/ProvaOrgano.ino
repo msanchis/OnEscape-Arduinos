@@ -61,6 +61,9 @@
 //Variable per activar o desactivar el organ
 boolean actiu=false;
 
+//Variable per saber si han encertat un acord
+boolean acordCorrecte=false;
+
 //Variable per seguir el estat de la prova del organ i el sostre de punxos i verificar el acord correcte
 int estat=0;
 
@@ -226,28 +229,122 @@ void acordInicial(){
   delay(3);
   client.publish("sala2/tecla9","1");
   delay(1000);
+  
+  client.publish("sala2/tecla12","0");
+  delay(3);
+  client.publish("sala2/tecla13","0");
+  delay(3);
+  client.publish("sala2/tecla17","0");
+  delay(3);
+  client.publish("sala2/tecla20","0");
+  delay(3500);
+  client.publish("sala2/tecla12","1");
+  delay(3);
+  client.publish("sala2/tecla13","1");
+  delay(3);
+  client.publish("sala2/tecla17","1");
+  delay(3);
+  client.publish("sala2/tecla20","1");
+
+  delay(3000);
+  //FINS ACI ACORDS INICIALS
+  //LEDS CARA
+  digitalWrite(led1,HIGH);
+  digitalWrite(led2,LOW);
+  digitalWrite(led3,LOW);
+  //PRIMER ACORD
+  client.publish("sala2/tecla7","0");
+  delay(3);
+  client.publish("sala2/tecla11","0");
+  delay(3);
+  client.publish("sala2/tecla13","0");
+  delay(3);
+  client.publish("sala2/tecla16","0");  
+  delay(3500);
+  client.publish("sala2/tecla7","1");
+  delay(3);
+  client.publish("sala2/tecla11","1");
+  delay(3);
+  client.publish("sala2/tecla13","1");
+  delay(3);
+  client.publish("sala2/tecla16","1");
+  delay(1000);
+
+  //LEDS CARA
+  digitalWrite(led1,LOW);
+  digitalWrite(led2,HIGH);
+  digitalWrite(led3,LOW);
+  //SEGON ACORD    
+  client.publish("sala2/tecla4","0");
+  delay(3);
+  client.publish("sala2/tecla7","0");
+  delay(3);
+  client.publish("sala2/tecla10","0");
+  delay(3);
+  client.publish("sala2/tecla12","0");
+  delay(3500);
+  client.publish("sala2/tecla4","1");
+  delay(3);
+  client.publish("sala2/tecla7","1");
+  delay(3);
+  client.publish("sala2/tecla10","1");
+  delay(3);
+  client.publish("sala2/tecla12","1");  
+  delay(1000);
+
+  
+  //LEDS CARA
+  digitalWrite(led1,LOW);
+  digitalWrite(led2,LOW);
+  digitalWrite(led3,HIGH);
+  //TERCER ACORD
+  client.publish("sala2/tecla1","0");
+  delay(3);
+  client.publish("sala2/tecla5","0");
+  delay(3);
+  client.publish("sala2/tecla8","0");
+  delay(3500);
+  client.publish("sala2/tecla1","1");
+  delay(3);
+  client.publish("sala2/tecla5","1");
+  delay(3);
+  client.publish("sala2/tecla8","1");
+  delay(1000);
+
+  //LEDS CARA
+  digitalWrite(led1,HIGH);
+  digitalWrite(led2,HIGH);
+  digitalWrite(led3,LOW);
+  //QUART i ULTIM ACORD  
   client.publish("sala2/tecla14","0");
   delay(3);
   client.publish("sala2/tecla17","0");
   delay(3);
   client.publish("sala2/tecla20","0");
-  delay(2500);
+  delay(3500);
   client.publish("sala2/tecla14","1");
   delay(3);
   client.publish("sala2/tecla17","1");
   delay(3);
   client.publish("sala2/tecla20","1");
+
+
+  //Activem el teclat de l'organ
+  actiu=true;
+
+  apagaLedsInicial();
 }
-   
+
+void apagaLedsInicial(){
+  digitalWrite(led1,LOW);
+  digitalWrite(led2,LOW);
+  digitalWrite(led3,LOW);
+}
+
 void encenLedsInicial(){
   digitalWrite(led1,HIGH);
   digitalWrite(led2,HIGH);
   digitalWrite(led3,HIGH);
-  delay(1000);
-  digitalWrite(led1,LOW);
-  digitalWrite(led2,LOW);
-  digitalWrite(led3,LOW);
-  
 }
 
 void encenUllDret(){
@@ -352,8 +449,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
      apagaBoca();
   }
 
-  
-
   res=strcmp(topic,"sala2/activaOrgan");
   if (res == 0) {
      
@@ -362,9 +457,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #endif
 
     encenLedsInicial();
-    acordInicial();
-    //Activem el teclat de l'organ
-    actiu=true; 
+    acordInicial();    
   }
     
   res=strcmp(topic,"sala2/desactivaOrgan");
@@ -380,7 +473,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a iniciaPunxos"));                
      #endif
-     estat=1;
+     if (actiu) estat=1;
   }
 
   res=strcmp(topic,"sala2/estat2Punxos");
@@ -388,10 +481,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a estat2Punxos"));                
      #endif
-     estat=2;
-     digitalWrite(led1,HIGH);
-     digitalWrite(led2,LOW);
-     digitalWrite(led3,LOW);
+     if (actiu) {
+      estat=2;     
+      digitalWrite(led1,HIGH);
+      digitalWrite(led2,LOW);
+      digitalWrite(led3,LOW);
+     }
   }
 
   res=strcmp(topic,"sala2/estat3Punxos");
@@ -399,10 +494,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a estat3Punxos"));                
      #endif
-     estat=3;
-     digitalWrite(led1,LOW);
-     digitalWrite(led2,HIGH);
-     digitalWrite(led3,LOW);
+     if (actiu) {
+       estat=3;
+       digitalWrite(led1,LOW);
+       digitalWrite(led2,HIGH);
+       digitalWrite(led3,LOW);
+     }
   }
 
   res=strcmp(topic,"sala2/estat4Punxos");
@@ -410,10 +507,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a estat4Punxos"));                
      #endif
-     estat=4;
-     digitalWrite(led1,LOW);
-     digitalWrite(led2,LOW);
-     digitalWrite(led3,HIGH);
+     if (actiu) {
+       estat=4;
+       digitalWrite(led1,LOW);
+       digitalWrite(led2,LOW);
+       digitalWrite(led3,HIGH);
+     }
   }
 
   res=strcmp(topic,"sala2/finalPunxos");
@@ -421,10 +520,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a finalPunxos"));                
      #endif
+     if (actiu) {
      estat=5;
-     digitalWrite(led1,HIGH);
-     digitalWrite(led2,HIGH);
-     digitalWrite(led3,LOW);
+       digitalWrite(led1,HIGH);
+       digitalWrite(led2,HIGH);
+       digitalWrite(led3,LOW);
+     }
   }
 }
 
@@ -474,7 +575,7 @@ void reconnect() {
 
 }
 
-
+unsigned long tempsTecla = 150;
 
 void loop ()
 {
@@ -503,7 +604,7 @@ void loop ()
     AlarmaTecla20= digitalRead (tecla20) ; // Leemos el estado del pin asociado a la pulsación
     
     if (AlarmaTecla1) {    
-      if (!EstadoTecla1 && (millis()-tiempoTecla1) > 300 ) {
+      if (!EstadoTecla1 && (millis()-tiempoTecla1) > tempsTecla ) {
         client.publish("sala2/tecla1","1");        
         Serial.println("tecla1 cambio de estado a 1");      
         EstadoTecla1=1;
@@ -518,7 +619,7 @@ void loop ()
     }
   
    if (AlarmaTecla2) {    
-      if (!EstadoTecla2 && (millis()-tiempoTecla2) > 300) {
+      if (!EstadoTecla2 && (millis()-tiempoTecla2) > tempsTecla) {
         client.publish("sala2/tecla2","1");        
         Serial.println("tecla2 cambio de estado a 1");      
         EstadoTecla2=1;
@@ -532,7 +633,7 @@ void loop ()
       }
     }
   
-   if (AlarmaTecla3 && (millis()-tiempoTecla3) > 300) {    
+   if (AlarmaTecla3 && (millis()-tiempoTecla3) > tempsTecla) {    
       if (!EstadoTecla3) {
         client.publish("sala2/tecla3","1");        
         Serial.println("tecla3 cambio de estado a 1");      
@@ -547,7 +648,7 @@ void loop ()
       }
     }
   
-    if (AlarmaTecla4 && (millis()-tiempoTecla4) > 300) {    
+    if (AlarmaTecla4 && (millis()-tiempoTecla4) > tempsTecla) {    
       if (!EstadoTecla4) {
         client.publish("sala2/tecla4","1");        
         Serial.println("tecla4 cambio de estado a 1");      
@@ -563,7 +664,7 @@ void loop ()
     }
   
     if (AlarmaTecla5) {    
-      if (!EstadoTecla5 && (millis()-tiempoTecla5) > 300 ) {
+      if (!EstadoTecla5 && (millis()-tiempoTecla5) > tempsTecla ) {
         client.publish("sala2/tecla5","1");        
         Serial.println("tecla5 cambio de estado a 1");      
         EstadoTecla5=1;
@@ -578,7 +679,7 @@ void loop ()
     }
   
    if (AlarmaTecla6) {    
-      if (!EstadoTecla6 && (millis()-tiempoTecla6) > 300) {
+      if (!EstadoTecla6 && (millis()-tiempoTecla6) > tempsTecla) {
         client.publish("sala2/tecla6","1");        
         Serial.println("tecla6 cambio de estado a 1");      
         EstadoTecla6=1;
@@ -592,7 +693,7 @@ void loop ()
       }
     }
   
-   if (AlarmaTecla7 && (millis()-tiempoTecla7) > 300) {    
+   if (AlarmaTecla7 && (millis()-tiempoTecla7) > tempsTecla) {    
       if (!EstadoTecla7) {
         client.publish("sala2/tecla7","1");        
         Serial.println("tecla7 cambio de estado a 1");      
@@ -607,7 +708,7 @@ void loop ()
       }
     }
   
-    if (AlarmaTecla8 && (millis()-tiempoTecla8) > 300) {    
+    if (AlarmaTecla8 && (millis()-tiempoTecla8) > tempsTecla) {    
       if (!EstadoTecla8) {
         client.publish("sala2/tecla8","1");        
         Serial.println("tecla8 cambio de estado a 1");      
@@ -623,7 +724,7 @@ void loop ()
     }
   
     if (AlarmaTecla9) {    
-      if (!EstadoTecla9 && (millis()-tiempoTecla9) > 300 ) {
+      if (!EstadoTecla9 && (millis()-tiempoTecla9) > tempsTecla ) {
         client.publish("sala2/tecla9","1");        
         Serial.println("tecla9 cambio de estado a 1");      
         EstadoTecla9=1;
@@ -638,7 +739,7 @@ void loop ()
     }
   
    if (AlarmaTecla10) {    
-      if (!EstadoTecla10 && (millis()-tiempoTecla10) > 300) {
+      if (!EstadoTecla10 && (millis()-tiempoTecla10) > tempsTecla) {
         client.publish("sala2/tecla10","1");        
         Serial.println("tecla10 cambio de estado a 1");      
         EstadoTecla10=1;
@@ -652,7 +753,7 @@ void loop ()
       }
     }
   
-   if (AlarmaTecla11 && (millis()-tiempoTecla11) > 300) {    
+   if (AlarmaTecla11 && (millis()-tiempoTecla11) > tempsTecla) {    
       if (!EstadoTecla11) {
         client.publish("sala2/tecla11","1");        
         Serial.println("tecla11 cambio de estado a 1");      
@@ -667,7 +768,7 @@ void loop ()
       }
     }
   
-    if (AlarmaTecla12 && (millis()-tiempoTecla12) > 300) {    
+    if (AlarmaTecla12 && (millis()-tiempoTecla12) > tempsTecla) {    
       if (!EstadoTecla12) {
         client.publish("sala2/tecla12","1");        
         Serial.println("tecla12 cambio de estado a 1");      
@@ -683,7 +784,7 @@ void loop ()
     }
   
     if (AlarmaTecla13) {    
-      if (!EstadoTecla13 && (millis()-tiempoTecla13) > 300 ) {
+      if (!EstadoTecla13 && (millis()-tiempoTecla13) > tempsTecla ) {
         client.publish("sala2/tecla13","1");        
         Serial.println("tecla13 cambio de estado a 1");      
         EstadoTecla13=1;
@@ -698,7 +799,7 @@ void loop ()
     }
   
    if (AlarmaTecla14) {    
-      if (!EstadoTecla14 && (millis()-tiempoTecla14) > 300) {
+      if (!EstadoTecla14 && (millis()-tiempoTecla14) > tempsTecla) {
         client.publish("sala2/tecla14","1");        
         Serial.println("tecla14 cambio de estado a 1");      
         EstadoTecla14=1;
@@ -712,7 +813,7 @@ void loop ()
       }
     }
   
-   if (AlarmaTecla15 && (millis()-tiempoTecla15) > 300) {    
+   if (AlarmaTecla15 && (millis()-tiempoTecla15) > tempsTecla) {    
       if (!EstadoTecla15) {
         client.publish("sala2/tecla15","1");        
         Serial.println("tecla15 cambio de estado a 1");      
@@ -727,7 +828,7 @@ void loop ()
       }
     }
   
-    if (AlarmaTecla16 && (millis()-tiempoTecla16) > 300) {    
+    if (AlarmaTecla16 && (millis()-tiempoTecla16) > tempsTecla) {    
       if (!EstadoTecla16) {
         client.publish("sala2/tecla16","1");        
         Serial.println("tecla16 cambio de estado a 1");      
@@ -743,7 +844,7 @@ void loop ()
     }
   
     if (AlarmaTecla17) {    
-      if (!EstadoTecla17 && (millis()-tiempoTecla17) > 300 ) {
+      if (!EstadoTecla17 && (millis()-tiempoTecla17) > tempsTecla ) {
         client.publish("sala2/tecla17","1");        
         Serial.println("tecla17 cambio de estado a 1");      
         EstadoTecla17=1;
@@ -758,7 +859,7 @@ void loop ()
     }
   
    if (AlarmaTecla18) {    
-      if (!EstadoTecla18 && (millis()-tiempoTecla18) > 300) {
+      if (!EstadoTecla18 && (millis()-tiempoTecla18) > tempsTecla) {
         client.publish("sala2/tecla18","1");      
         Serial.println("tecla18 cambio de estado a 1");      
         EstadoTecla18=1;
@@ -772,7 +873,7 @@ void loop ()
       }
     }
   
-   if (AlarmaTecla19 && (millis()-tiempoTecla19) > 300) {    
+   if (AlarmaTecla19 && (millis()-tiempoTecla19) > tempsTecla) {    
       if (!EstadoTecla19) {
         client.publish("sala2/tecla19","1");        
         Serial.println("tecla19 cambio de estado a 1");      
@@ -787,7 +888,7 @@ void loop ()
       }
     }
   
-    if (AlarmaTecla20 && (millis()-tiempoTecla20) > 300) {    
+    if (AlarmaTecla20 && (millis()-tiempoTecla20) > tempsTecla) {    
       if (!EstadoTecla20) {
         client.publish("sala2/tecla20","1");      
         Serial.println("tecla20 cambio de estado a 1");      
@@ -804,23 +905,27 @@ void loop ()
 
     switch(estat){
       case 2:
-          if (EstadoTecla1 && EstadoTecla2 && EstadoTecla3){
+          if (!acordCorrecte && !EstadoTecla7 && !EstadoTecla11 && !EstadoTecla13 && !EstadoTecla16){
             client.publish("sala2/acordCorrecte","on");
+            acordCorrecte=true;
           }
       break;
       case 3:
-          if (EstadoTecla4 && EstadoTecla5 && EstadoTecla6){
+          if (!acordCorrecte && !EstadoTecla4 && !EstadoTecla7 && !EstadoTecla10  && !EstadoTecla12){
             client.publish("sala2/acordCorrecte","on");
+            acordCorrecte=true;
           }
       break;
       case 4:
-           if (EstadoTecla7 && EstadoTecla8 && EstadoTecla9){
+           if (!acordCorrecte && !EstadoTecla1 && !EstadoTecla5 && !EstadoTecla9){
             client.publish("sala2/acordCorrecte","on");
+            acordCorrecte=true;
           }
       break;
       case 5:
-           if (EstadoTecla10 && EstadoTecla11 && EstadoTecla12){
+           if (!acordCorrecte && !EstadoTecla14 && !EstadoTecla17 && !EstadoTecla20){
             client.publish("sala2/acordCorrecte","on");
+            acordCorrecte=true;
           }
       break;
       /*case 5:
@@ -838,4 +943,4 @@ void loop ()
   }
   client.loop();
   
-} 
+}     
