@@ -85,7 +85,7 @@ const int RELE_INVERSOR2 = 3;       //activació del relé del negatiu y canvi d
 
 const int RELE_ELECTROIMAN = 2;   //electroiman porta sala punxos
 
-const int RELE_LLUM_ULTRA = 13; //llum ultravioleta sala punxos
+//const int RELE_LLUM_ULTRA = 13; //llum ultravioleta sala punxos
 
 int estat=0; //Variable per determinar el estat de  la baixada del sostre
              //estat = 0 (no ha comensat)
@@ -156,8 +156,8 @@ void setup() {
   pinMode(RELE_ELECTROIMAN,OUTPUT);             //Pin relé electroiman Porta Puntxos (obert per defecte, sense Arduino)
   digitalWrite(RELE_ELECTROIMAN ,HIGH);
 
-  pinMode(RELE_LLUM_ULTRA,OUTPUT);              //Pin relé ultravioleta Sala Puntxos (obert per defecte, sense Arduino)
-  digitalWrite(RELE_LLUM_ULTRA, LOW);
+  //pinMode(RELE_LLUM_ULTRA,OUTPUT);              //Pin relé ultravioleta Sala Puntxos (obert per defecte, sense Arduino)
+  //digitalWrite(RELE_LLUM_ULTRA, LOW);
 
   pinMode(FinalCarrera, INPUT_PULLUP); //Declaramos el pin como entrada
   
@@ -193,16 +193,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   res=strcmp(topic,"sala2/apagaLeds");
   if (res == 0) {    //apagar llum
       analogWrite(PinLeds,0);
-  }
-
-  res=strcmp(topic,"sala2/encenUltraPunxos");
-  if (res == 0) {    //encendre llum blanca
-      digitalWrite(RELE_LLUM_ULTRA,HIGH);
-  }
-  res=strcmp(topic,"sala2/apagaUltraPunxos");
-  if (res == 0) {    //apagar llum
-      digitalWrite(RELE_LLUM_ULTRA,LOW);
-  }
+  } 
 
   res=strcmp(topic,"sala2/encenAntorxes");
   if (res == 0) {    //activar antorxes
@@ -255,7 +246,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #endif
     
      digitalWrite(RELE_ELECTROIMAN,LOW); //obri porta puntxos
-     digitalWrite(RELE_LLUM_ULTRA,LOW); //apaga llum ultravioleta
+     //client.publish("sala2/apagaUltraPunxos","1");
+          
      paraPisto();
      estat=6;    
   }
@@ -335,9 +327,7 @@ void reconnect() {
       client.subscribe("sala2/baixaSostre");
       client.subscribe("sala2/paraSostre");
       client.subscribe("sala2/obriPortaPuntxos");
-      client.subscribe("sala2/tancaPortaPuntxos");
-      client.subscribe("sala2/encenUltraPunxos");
-      client.subscribe("sala2/apagaUltraPunxos");            
+      client.subscribe("sala2/tancaPortaPuntxos");                
                 
     } else {
       #ifdef DEBUG_LED
@@ -370,8 +360,7 @@ void loop() {
     iniciaSostre=true;  
     marcaTemps1=millis();
     estat=1;
-    baixaPisto();    
-    digitalWrite(RELE_LLUM_ULTRA,HIGH); //encendre llum ultravioleta    
+    baixaPisto();        
   }
 
   if (estat > 0){

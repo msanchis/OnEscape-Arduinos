@@ -40,7 +40,7 @@
 //VARIABLES i objectes de la xarxa i client Mosquitto
 byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFF, 0x08};//mac del arduino
 IPAddress ip(192, 168, 68, 200); //Ip fija del arduino
-IPAddress server(192, 168, 68, 56); //Ip del server de mosquitto
+IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT
@@ -67,13 +67,14 @@ const int ledRed = 8;
 const int ledGreen = 9;
 const int ledBlue = 10;
 */
-const int ledBlanc = 3;
-const int ledRoig = 4;
+const int ledRed = 2;
+const int ledGreen = 3;
+const int ledBlue = 4;
 
 bool iniciaPasillo=false;
 
-//const int pinFinalCarrera=2;
-const int pinFinalCarrera=A5;
+int pinFinalCarrera=0;
+//const int pinFinalCarrera=A5;
 
 boolean obri = false; //Variable per assignar el estat del electroiman (porta)
 boolean manual = false; //Variable per canviar al mode manual i poder obrir i tancar la porta remotament
@@ -110,8 +111,14 @@ void setup() {
     Serial.println(F("Definició dels PINS dels LEDS i RELE"));
   #endif
   
-  pinMode(ledBlanc,OUTPUT);
-  pinMode(ledRoig,OUTPUT);
+  pinMode(ledRed,OUTPUT);
+  pinMode(ledGreen,OUTPUT);
+  pinMode(ledBlue,OUTPUT);
+
+  digitalWrite(ledRed,HIGH);
+  digitalWrite(ledGreen,HIGH);
+  digitalWrite(ledBlue,HIGH);
+  
   pinMode(releElectroIman,OUTPUT);   
 
   pinMode(releImanPorta,OUTPUT);
@@ -162,8 +169,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
         #ifdef DEBUG_HX711
           Serial.print("ENTRA en !obri");
         #endif  
-        digitalWrite(ledBlanc,HIGH);
-        digitalWrite(ledRoig,LOW);
+
+        digitalWrite(ledRed,HIGH);
+        digitalWrite(ledGreen,HIGH);
+        digitalWrite(ledBlue,HIGH);
+        
+        //digitalWrite(ledBlanc,HIGH);
+        //digitalWrite(ledRoig,LOW);
+        
         digitalWrite(releElectroIman,LOW);     
       }
       obri=true;   
@@ -174,8 +187,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
       #ifdef DEBUG_HX711
         Serial.print("ENTRA en obri");
       #endif
-      digitalWrite(ledBlanc,LOW);
-      digitalWrite(ledRoig,HIGH);
+
+      digitalWrite(ledRed,HIGH);
+      digitalWrite(ledGreen,LOW);
+      digitalWrite(ledBlue,LOW);
+      
+      //digitalWrite(ledBlanc,LOW);
+      //digitalWrite(ledRoig,HIGH);
+      
       digitalWrite(releElectroIman,HIGH);       
     }
     obri=false;
@@ -204,8 +223,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
       Serial.print(F("Estat = 2 desactiva Bascula "));
     #endif
     digitalWrite(releElectroIman,LOW);
-    digitalWrite(ledBlanc,LOW);
-    digitalWrite(ledRoig,LOW);
+
+    digitalWrite(ledRed,LOW);
+    digitalWrite(ledGreen,LOW);
+    digitalWrite(ledBlue,LOW);
+    
+    //digitalWrite(ledBlanc,LOW);
+    //digitalWrite(ledRoig,LOW);
     estat=2;
   }
 
@@ -315,6 +339,10 @@ void reconnect() {
   }
 }
 
+int cont1=0; //DEBUG FinalCarrera
+int cont2=0; //Evitar lectures incorrectes FinalCarreraPortaCaraVeritat
+unsigned long controlTemps = 0;
+
 
 void loop() {
   
@@ -339,9 +367,15 @@ void loop() {
             #ifdef DEBUG_HX711
               Serial.print("ENTRA en !obri");
             #endif  
-            digitalWrite(ledBlanc,HIGH);
-            digitalWrite(ledRoig,LOW);
-            digitalWrite(releElectroIman,LOW);     
+            
+            digitalWrite(ledRed,HIGH);
+            digitalWrite(ledGreen,HIGH);
+            digitalWrite(ledBlue,HIGH);
+            
+            //digitalWrite(ledBlanc,HIGH);
+            //digitalWrite(ledRoig,LOW);
+            
+            digitalWrite(releElectroIman,HIGH);     
           }
           obri=true;
         }else {
@@ -353,9 +387,15 @@ void loop() {
             #ifdef DEBUG_HX711
               Serial.print("ENTRA en obri");
             #endif
-            digitalWrite(ledBlanc,LOW);
-            digitalWrite(ledRoig,HIGH);
-            digitalWrite(releElectroIman,HIGH);       
+
+            digitalWrite(ledRed,HIGH);
+            digitalWrite(ledGreen,LOW);
+            digitalWrite(ledBlue,LOW);
+            
+            //digitalWrite(ledBlanc,LOW);
+            //digitalWrite(ledRoig,HIGH);
+            
+            digitalWrite(releElectroIman,LOW);       
           }
           obri=false;
         }
@@ -365,18 +405,36 @@ void loop() {
   }
 
   boolean tancaPorta = digitalRead(pinFinalCarrera);
+  boolean tancaPortaReal=false;
+  
+  if (!iniciaPasillo && !tancaPorta){
+    if (millis()- controlTemps < 50 ) cont2++;
+    controlTemps=millis();
+    if (cont2 > 1000) {
+      tancaPortaReal=true;      
+    }
+  }
+  
+  #ifdef DEBUG_HX711
+    if ( cont1 == 0 || (cont1 % 5000 == 0)){
+      Serial.print(F("tancaPorta: ")); 
+      Serial.println(tancaPorta);
+      Serial.println("***************");
+      Serial.print(F("contadorPortaTancada: "));
+      Serial.println(cont2);
+    }
+    cont1++;
+  #endif
 
-  if (!tancaPorta && !iniciaPasillo) {
-    #ifdef DEBUG_HX711
-      
-      Serial.println(F("[FinalCarrera] tanca Porta Cara Veritat"));
+  if (tancaPortaReal && !iniciaPasillo) {
+    #ifdef DEBUG_HX711      
+        Serial.println(F("[FinalCarrera] tanca Porta Cara Veritat"));
     #endif
     //Activem l'electroiman
     client.publish("sala2/tancaPortaCaraVeritat","on");
-
-    digitalWrite(releImanPorta,HIGH); //Activem l'electroiman
+    
     digitalWrite(releUltravioleta12,HIGH); //Activem la llum ultravioleta
-    digitalWrite(releUltravioleta220,HIGH); //Activem la llum ultravioleta
+    digitalWrite(releUltravioleta220,LOW); //Activem la llum ultravioleta
     iniciaPasillo=true;   //Per a que no entre de nou en aquest if
   }
  
