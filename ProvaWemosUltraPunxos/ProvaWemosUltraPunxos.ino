@@ -1,3 +1,14 @@
+/*
+ * Wemos D1 mini (magatzem)
+ * 
+ * 1 rele control de llum ultravioleta 220V
+ * 
+ * Per resetejar el dispositiu
+ *  sala2/reset
+ *  sala2/resetWemosUltra
+ */
+
+
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
@@ -8,15 +19,16 @@ const char* ssid = "OntitelFTTH_5493";
 const char* password = "mm45WQ9u";
 const char* mqtt_server = "192.168.1.2";
 */
-const char* ssid = "OnEscape2";
+const char* ssid = "OnEscape";
 const char* password = "M1cky&S1ny0";
 const char* mqtt_server = "192.168.68.55";
-
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 const int RELE_LLUM_ULTRA=5;
+
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 void setup_wifi() {
 
@@ -42,8 +54,20 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
+
+  int res=strcmp(topic,"sala2/reset");
+  if (res == 0) {    //RESET para toda la sala
+     //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms      
+     resetFunc();
+  }
+  
+  res=strcmp(topic,"sala2/resetWemosUltra");
+  if (res == 0) {    //RESET pedestal
+     //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms      
+     resetFunc();
+  }
  
-  int res=strcmp(topic,"sala2/encenUltraPunxos");
+  res=strcmp(topic,"sala2/encenUltraPunxos");
   if (res == 0) {    //encendre llum blanca
       digitalWrite(RELE_LLUM_ULTRA,HIGH);
   }
@@ -67,11 +91,13 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
-    String clientId = "WemosUltraPuntxos";
+    String clientId = "WemosUltra";
     
     // Attempt to connect
     if (client.connect(clientId.c_str())) {
-      Serial.println("connected");    
+      Serial.println("connected");
+      client.subscribe("sala2/reset"); 
+      client.subscribe("sala2/resetWemosUltra");
       client.subscribe("sala2/encenUltraPunxos");
       client.subscribe("sala2/apagaUltraPunxos");
       client.subscribe("sala2/iniciaPunxos");

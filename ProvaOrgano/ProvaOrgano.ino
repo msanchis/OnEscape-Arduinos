@@ -1,5 +1,4 @@
-/* TODO 
- *  Revisar codi python Raspberry Pi 4 magatzem (tecla 1,01,2... o tecla1,tecla2...??????)
+/* 
  * 
  * Crear els estats
  *  estat=0 INICI no fa res -canvia amb el event sala2/activaOrgan-
@@ -53,10 +52,10 @@
 #include <SPI.h>
 #include <Ethernet.h> //Conexion Ethernet con carcasa W5100
 #include <PubSubClient.h> //Conexion MQTT
-#include <avr/wdt.h> // Incluir la librería de ATmel per a reiniciar el arduino
+//#include <avr/wdt.h> // Incluir la librería de ATmel per a reiniciar el arduino
 
 //Define per veure els prints al monitor
-#define DEBUG_ORGAN  
+//#define DEBUG_ORGAN  
 
 //Variable per activar o desactivar el organ
 boolean actiu=false;
@@ -70,10 +69,12 @@ int estat=0;
 //VARIABLES i objectes de la xarxa i client Mosquitto
 byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0xFA};//mac del arduino
 IPAddress ip(192, 168, 68, 201); //Ip fija del arduino
-IPAddress server(192, 168, 68, 56); //Ip del server de mosquitto
+IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT 
+
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 const int led1 = 3; //Ull dret
 const int led2 = 4; //Ull esquerra
@@ -196,7 +197,7 @@ void setup ()
   
   #ifdef DEBUG_ORGAN
        Serial.begin(9600);
-       Serial.println(F("Inicia Arduino"));
+       Serial.println(F("Inicia Arduino MEGA Organo"));
   #endif
   
   //MQTT
@@ -206,7 +207,7 @@ void setup ()
 
   //Ethernet.begin(mac);   
   Ethernet.begin(mac,ip);
-  //delay(1000);
+  delay(1000);
 
   #ifdef DEBUG_ORGAN
     Serial.println(F("connectant..."));
@@ -222,13 +223,13 @@ void acordInicial(){
   client.publish("sala2/tecla5","0");
   delay(3);
   client.publish("sala2/tecla9","0");
-  delay(2000);
+  delay(3000);
   client.publish("sala2/tecla1","1");
   delay(3);
   client.publish("sala2/tecla5","1");
   delay(3);
   client.publish("sala2/tecla9","1");
-  delay(1000);
+  delay(1500);
   
   client.publish("sala2/tecla12","0");
   delay(3);
@@ -237,7 +238,7 @@ void acordInicial(){
   client.publish("sala2/tecla17","0");
   delay(3);
   client.publish("sala2/tecla20","0");
-  delay(3500);
+  delay(4500);
   client.publish("sala2/tecla12","1");
   delay(3);
   client.publish("sala2/tecla13","1");
@@ -245,7 +246,7 @@ void acordInicial(){
   client.publish("sala2/tecla17","1");
   delay(3);
   client.publish("sala2/tecla20","1");
-
+/*
   delay(3000);
   //FINS ACI ACORDS INICIALS
   //LEDS CARA
@@ -328,7 +329,7 @@ void acordInicial(){
   delay(3);
   client.publish("sala2/tecla20","1");
 
-
+*/
   //Activem el teclat de l'organ
   actiu=true;
 
@@ -392,7 +393,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
       #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a reset o resetOrgano"));
       #endif
-     wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
+     //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
+     resetFunc();
   }
 
   res=strcmp(topic,"sala2/encenUllDret");

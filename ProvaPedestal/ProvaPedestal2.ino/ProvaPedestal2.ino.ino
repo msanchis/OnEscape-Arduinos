@@ -46,8 +46,9 @@
  * Per activar el organ despres de reliquia5
  *   sala2/activaOrgan
  *   
- * 
- *   
+ * Per a desactivar organ i para baixada punxos/llum ultravioleta punxos
+ *   sala2/acordCorrecte
+ *  
  */
 
 
@@ -60,7 +61,7 @@
 //VARIABLES i objectes de la xarxa i client Mosquitto
 byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xF0, 0xFE};//mac del arduino
 IPAddress ip(192, 168, 68, 202); //Ip fija del arduino
-IPAddress server(192, 168, 68, 56); //Ip del server de mosquitto
+IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT
@@ -122,7 +123,7 @@ const int Sensor12 = 43;    // Sensor6 presencia iman2
 unsigned long marcaTemps6 = 0; //Marca de temps per als sensors 11 i 12
 boolean condicio60=false;
 boolean condicio61=false;
-
+/* Configuració vella abans de solucionar problema modul 8 reles
 const int RelElectro1 = 2; // Pin para cortar corriente Electroiman1 
 const int RelElectro2 = 3; // Pin para cortar corriente Electroiman2 y encender luz4
 const int RelElectro3 = 4; // Pin para cortar corriente Electroiman3 y encender luz5
@@ -131,6 +132,15 @@ const int RelElectro5 = 6; // Pin para cortar corriente Electroiman5 y encender 
 const int RelElectro6 = 7; // Pin para cortar corriente Electroiman6 y encender luz3
 const int RelElectro7 = 8; // Pin para cortar corriente Electroiman7 y encender luz7
 const int RelElectro8 = 9; // Pin encender luz6
+*/
+const int RelElectro1 = 9; // Pin para cortar corriente Electroiman1 
+const int RelElectro2 = 8; // Pin para cortar corriente Electroiman2 y encender luz4
+const int RelElectro3 = 7; // Pin para cortar corriente Electroiman3 y encender luz5
+const int RelElectro4 = 6; // Pin para cortar corriente Electroiman4 y encender luz1
+const int RelElectro5 = 5; // Pin para cortar corriente Electroiman5 y encender luz2
+const int RelElectro6 = 4; // Pin para cortar corriente Electroiman6 y encender luz3
+const int RelElectro7 = 3; // Pin para cortar corriente Electroiman7 y encender luz7
+const int RelElectro8 = 2; // Pin encender luz6
 
 boolean pasaEstat=true; //Variable per comprovar que totes les reliquies estan al seu lloc per poder avançar
 
@@ -353,7 +363,7 @@ void loop() {
     digitalWrite(RelElectro1,LOW); // Desactivem el electroiman4 per a que obriga comporta
     estat=1; 
   }
-*/
+
   if (DEBUG && (millis() > (debugTemps + 500))) {
     debugTemps=millis();
     Serial.print("ESTAT ");
@@ -386,7 +396,7 @@ void loop() {
     Serial.print(value12);
     Serial.println(" ");  
   }
-
+*/
 //SENSORS RELIQUIA1
 if (value7 == 0 || value8 == 0) condicio10=true;
 else condicio10=false;

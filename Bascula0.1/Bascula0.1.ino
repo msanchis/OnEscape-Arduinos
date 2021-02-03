@@ -67,8 +67,8 @@ const int ledRed = 8;
 const int ledGreen = 9;
 const int ledBlue = 10;
 */
-const int ledRed = 2;
-const int ledGreen = 3;
+const int ledRed = 3;
+const int ledGreen = 2;
 const int ledBlue = 4;
 
 bool iniciaPasillo=false;
@@ -145,6 +145,10 @@ void setup() {
   // Iniciar la tara
   // No tiene que haber nada sobre el peso
   bascula.tare();
+
+  //delay(2000);
+  //peso=bascula.get_units(15);
+  
 }
 
 
@@ -342,13 +346,13 @@ void reconnect() {
 int cont1=0; //DEBUG FinalCarrera
 int cont2=0; //Evitar lectures incorrectes FinalCarreraPortaCaraVeritat
 unsigned long controlTemps = 0;
-
+float peso = 0;
 
 void loop() {
   
   switch(estat){
     case 1:
-       float peso = bascula.get_units(15);  
+       peso = bascula.get_units(15);  
   
       #ifdef DEBUG_HX711
         Serial.print("[HX7] Leyendo: ");  

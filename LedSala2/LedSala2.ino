@@ -64,7 +64,7 @@
 //VARIABLES i objectes de la xarxa i client Mosquitto
 const byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xEF, 0x12};//mac del arduino
 const IPAddress ip( 192, 168, 68, 203); //Ip fija del arduino
-const IPAddress server( 192, 168, 68, 56); //Ip del server de mosquitto
+const IPAddress server( 192, 168, 68, 55); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT
@@ -107,12 +107,14 @@ unsigned long marcaTemps5 = 0;
 void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 void baixaPisto(){
+    paraPisto();
     digitalWrite(RELE_ALIMENTACIO,LOW);
     digitalWrite(RELE_INVERSOR1,LOW);
     digitalWrite(RELE_INVERSOR2,LOW);  
 }
 
 void pujaPisto(){
+  paraPisto();
   digitalWrite(RELE_ALIMENTACIO,LOW);
   digitalWrite(RELE_INVERSOR1,HIGH);
   digitalWrite(RELE_INVERSOR2,HIGH);
@@ -141,7 +143,7 @@ void setup() {
       
   //delay(1000); //Cambio de 1000 a 100
 
-  pinMode(PinLeds,OUTPUT);  
+    pinMode(PinLeds,OUTPUT);  
 
   pinMode(RELE_ALIMENTACIO, OUTPUT);           // Pin relé alimentación como salida
   pinMode(RELE_INVERSOR1, OUTPUT);              // Pin relé inversor1 como salida
@@ -279,7 +281,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
      paraPisto();     
   }
 
-  res=strcmp(topic,"sala2/obriPortaPuntxos");
+  res=strcmp(topic,"sala2/obriPortaPunxos");
   if (res == 0) {    //controlador Pisto
      #ifdef DEBUG_LED
         Serial.print(F("Entra a obriPortaPUntxos "));
@@ -288,7 +290,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
      digitalWrite(RELE_ELECTROIMAN,LOW);
   }
 
-  res=strcmp(topic,"sala2/tancaPortaPuntxos");
+  res=strcmp(topic,"sala2/tancaPortaPunxos");
   if (res == 0) {    //controlador Pisto
      #ifdef DEBUG_LED
         Serial.print(F("Entra a tancaPortaPUntxos "));
@@ -326,8 +328,8 @@ void reconnect() {
       client.subscribe("sala2/pujaSostre");
       client.subscribe("sala2/baixaSostre");
       client.subscribe("sala2/paraSostre");
-      client.subscribe("sala2/obriPortaPuntxos");
-      client.subscribe("sala2/tancaPortaPuntxos");                
+      client.subscribe("sala2/obriPortaPunxos");
+      client.subscribe("sala2/tancaPortaPunxos");                
                 
     } else {
       #ifdef DEBUG_LED
@@ -347,11 +349,25 @@ boolean estat3=false;
 boolean estat4=false;
 boolean estat5=false;
 
+int cont2=0; //Evitar lectures incorrectes FinalCarrera
+unsigned long controlTemps = 0;
+
+
 void loop() {
 
   boolean existeReliquia = digitalRead(FinalCarrera);
+  boolean existeReliquiaReal = false;
+  
+  if (!iniciaSostre && existeReliquia){
+    if (millis()-controlTemps < 50 ) cont2++;
+    controlTemps=millis();
+    if (cont2 > 1000) {
+      existeReliquiaReal=true;      
+    }
+  }
 
-  if (existeReliquia && !iniciaSostre) {
+
+  if (existeReliquiaReal && !iniciaSostre) {
     #ifdef DEBUG_LED
     // Inicia Sostre -Final Carrera Reliquia 5-     
       Serial.println(F("[FinalCarrera] Estat=1 Baixa Pisto Sostre"));
