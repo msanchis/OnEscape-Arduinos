@@ -6,6 +6,9 @@
  * Per resetejar el dispositiu
  *  sala2/reset
  *  sala2/resetWemosUltra
+ *  
+ *  sala2/encenUltraPunxos
+ *  sala2/apagaUltraPunxos
  */
 
 

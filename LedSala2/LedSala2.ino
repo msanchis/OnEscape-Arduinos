@@ -232,7 +232,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       analogWrite(PinLeds, 100);    
       delay(200);
       analogWrite(PinLeds,0);        
-      delay(3000);
+      delay(2000);
       analogWrite(PinLeds, 100);    
       delay(100);     
       analogWrite(PinLeds, 255);    
@@ -246,10 +246,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_LED
         Serial.println(F("Entra a ACORD CORRECTE PARA Pisto i ObriPortaPunxos"));
      #endif
-    
+
+     digitalWrite(RELE_ANTORXES,LOW); //Encen Antorxes
      digitalWrite(RELE_ELECTROIMAN,LOW); //obri porta puntxos
-     //client.publish("sala2/apagaUltraPunxos","1");
-          
+     //client.publish("sala2/apagaUltraPunxos","1");          
      paraPisto();
      estat=6;    
   }
@@ -376,7 +376,8 @@ void loop() {
     iniciaSostre=true;  
     marcaTemps1=millis();
     estat=1;
-    baixaPisto();        
+    baixaPisto();
+    digitalWrite(RELE_ANTORXES,HIGH); //APAGA ANTORXES
   }
 
   if (estat > 0){

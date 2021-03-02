@@ -55,7 +55,7 @@
 //#include <avr/wdt.h> // Incluir la librería de ATmel per a reiniciar el arduino
 
 //Define per veure els prints al monitor
-//#define DEBUG_ORGAN  
+#define DEBUG_ORGAN  
 
 //Variable per activar o desactivar el organ
 boolean actiu=false;
@@ -125,26 +125,26 @@ boolean AlarmaTecla19;
 boolean AlarmaTecla20;
 
 
-boolean EstadoTecla1=0;
-boolean EstadoTecla2=0;
-boolean EstadoTecla3=0;
-boolean EstadoTecla4=0;
-boolean EstadoTecla5=0;
-boolean EstadoTecla6=0;
-boolean EstadoTecla7=0;
-boolean EstadoTecla8=0;
-boolean EstadoTecla9=0;
-boolean EstadoTecla10=0;
-boolean EstadoTecla11=0;
-boolean EstadoTecla12=0;
-boolean EstadoTecla13=0;
-boolean EstadoTecla14=0;
-boolean EstadoTecla15=0;
-boolean EstadoTecla16=0;
-boolean EstadoTecla17=0;
-boolean EstadoTecla18=0;
-boolean EstadoTecla19=0;
-boolean EstadoTecla20=0;
+boolean EstadoTecla1=1;
+boolean EstadoTecla2=1;
+boolean EstadoTecla3=1;
+boolean EstadoTecla4=1;
+boolean EstadoTecla5=1;
+boolean EstadoTecla6=1;
+boolean EstadoTecla7=1;
+boolean EstadoTecla8=1;
+boolean EstadoTecla9=1;
+boolean EstadoTecla10=1;
+boolean EstadoTecla11=1;
+boolean EstadoTecla12=1;
+boolean EstadoTecla13=1;
+boolean EstadoTecla14=1;
+boolean EstadoTecla15=1;
+boolean EstadoTecla16=1;
+boolean EstadoTecla17=1;
+boolean EstadoTecla18=1;
+boolean EstadoTecla19=1;
+boolean EstadoTecla20=1;
 
 
 unsigned long tiempoTecla1=0;
@@ -197,7 +197,7 @@ void setup ()
   
   #ifdef DEBUG_ORGAN
        Serial.begin(9600);
-       Serial.println(F("Inicia Arduino MEGA Organo"));
+       Serial.println(F("Inicia Arduino MEGA Organ"));
   #endif
   
   //MQTT
@@ -217,123 +217,12 @@ void setup ()
 }
 
 
-void acordInicial(){
-  client.publish("sala2/tecla1","0");
-  delay(3);
-  client.publish("sala2/tecla5","0");
-  delay(3);
-  client.publish("sala2/tecla9","0");
-  delay(3000);
-  client.publish("sala2/tecla1","1");
-  delay(3);
-  client.publish("sala2/tecla5","1");
-  delay(3);
-  client.publish("sala2/tecla9","1");
-  delay(1500);
-  
-  client.publish("sala2/tecla12","0");
-  delay(3);
-  client.publish("sala2/tecla13","0");
-  delay(3);
-  client.publish("sala2/tecla17","0");
-  delay(3);
-  client.publish("sala2/tecla20","0");
-  delay(4500);
-  client.publish("sala2/tecla12","1");
-  delay(3);
-  client.publish("sala2/tecla13","1");
-  delay(3);
-  client.publish("sala2/tecla17","1");
-  delay(3);
-  client.publish("sala2/tecla20","1");
-/*
-  delay(3000);
-  //FINS ACI ACORDS INICIALS
-  //LEDS CARA
-  digitalWrite(led1,HIGH);
-  digitalWrite(led2,LOW);
-  digitalWrite(led3,LOW);
-  //PRIMER ACORD
-  client.publish("sala2/tecla7","0");
-  delay(3);
-  client.publish("sala2/tecla11","0");
-  delay(3);
-  client.publish("sala2/tecla13","0");
-  delay(3);
-  client.publish("sala2/tecla16","0");  
-  delay(3500);
-  client.publish("sala2/tecla7","1");
-  delay(3);
-  client.publish("sala2/tecla11","1");
-  delay(3);
-  client.publish("sala2/tecla13","1");
-  delay(3);
-  client.publish("sala2/tecla16","1");
-  delay(1000);
-
-  //LEDS CARA
-  digitalWrite(led1,LOW);
-  digitalWrite(led2,HIGH);
-  digitalWrite(led3,LOW);
-  //SEGON ACORD    
-  client.publish("sala2/tecla4","0");
-  delay(3);
-  client.publish("sala2/tecla7","0");
-  delay(3);
-  client.publish("sala2/tecla10","0");
-  delay(3);
-  client.publish("sala2/tecla12","0");
-  delay(3500);
-  client.publish("sala2/tecla4","1");
-  delay(3);
-  client.publish("sala2/tecla7","1");
-  delay(3);
-  client.publish("sala2/tecla10","1");
-  delay(3);
-  client.publish("sala2/tecla12","1");  
-  delay(1000);
-
-  
-  //LEDS CARA
-  digitalWrite(led1,LOW);
-  digitalWrite(led2,LOW);
-  digitalWrite(led3,HIGH);
-  //TERCER ACORD
-  client.publish("sala2/tecla1","0");
-  delay(3);
-  client.publish("sala2/tecla5","0");
-  delay(3);
-  client.publish("sala2/tecla8","0");
-  delay(3500);
-  client.publish("sala2/tecla1","1");
-  delay(3);
-  client.publish("sala2/tecla5","1");
-  delay(3);
-  client.publish("sala2/tecla8","1");
-  delay(1000);
-
-  //LEDS CARA
-  digitalWrite(led1,HIGH);
-  digitalWrite(led2,HIGH);
-  digitalWrite(led3,LOW);
-  //QUART i ULTIM ACORD  
-  client.publish("sala2/tecla14","0");
-  delay(3);
-  client.publish("sala2/tecla17","0");
-  delay(3);
-  client.publish("sala2/tecla20","0");
-  delay(3500);
-  client.publish("sala2/tecla14","1");
-  delay(3);
-  client.publish("sala2/tecla17","1");
-  delay(3);
-  client.publish("sala2/tecla20","1");
-
-*/
+void acordInicial(){ //EXECUTAT DESDE SERVIDOR RASP AUDIO2.PY
   //Activem el teclat de l'organ
-  actiu=true;
-
+  
+  delay(6000);
   apagaLedsInicial();
+  actiu=true;
 }
 
 void apagaLedsInicial(){
@@ -388,10 +277,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   #endif
  
   int res=strcmp(topic,"sala2/reset");
-  int resu = strcmp(topic,"sala2/resetOrgano");  
+  int resu = strcmp(topic,"sala2/resetOrgan");  
   if (res == 0 || resu == 0) { //RESET PLACA
       #ifdef DEBUG_ORGAN
-        Serial.print(F("ENTRA a reset o resetOrgano"));
+        Serial.print(F("ENTRA a reset o resetOrgan"));
       #endif
      //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
      resetFunc();
@@ -540,14 +429,14 @@ void reconnect() {
     #endif
     
     // Attempt to connect
-    if (client.connect("Organo")) {
+    if (client.connect("Organ")) {
       #ifdef DEBUG_ORGAN
         Serial.println(F("connectat MQTT"));      
       #endif
 
       client.subscribe("sala2/reset"); 
       client.subscribe("sala2/dificultat");
-      client.subscribe("sala2/resetOrgano");
+      client.subscribe("sala2/resetOrgan");
       client.subscribe("sala2/activaOrgan"); 
       client.subscribe("sala2/desactivaOrgan"); 
       
@@ -580,9 +469,7 @@ void reconnect() {
 unsigned long tempsTecla = 150;
 
 void loop ()
-{
-
-  if (actiu) {
+{ 
     
     AlarmaTecla1= digitalRead (tecla1) ; // Leemos el estado del pin asociado a la pulsación  
     AlarmaTecla2= digitalRead (tecla2) ; // Leemos el estado del pin asociado a la pulsación
@@ -604,6 +491,8 @@ void loop ()
     AlarmaTecla18= digitalRead (tecla18) ; // Leemos el estado del pin asociado a la pulsación
     AlarmaTecla19= digitalRead (tecla19) ; // Leemos el estado del pin asociado a la pulsación
     AlarmaTecla20= digitalRead (tecla20) ; // Leemos el estado del pin asociado a la pulsación
+
+  if (actiu) {
     
     if (AlarmaTecla1) {    
       if (!EstadoTecla1 && (millis()-tiempoTecla1) > tempsTecla ) {
@@ -939,6 +828,11 @@ void loop ()
     }
     
   } //IF si esta actiu 
+
+  if (acordCorrecte) {
+    apagaLedsInicial();
+    actiu=false;
+  }
   
   if (!client.connected()) {
       reconnect();
