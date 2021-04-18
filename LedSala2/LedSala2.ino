@@ -24,6 +24,10 @@
  * Per establir dificultat de la sala (futur)
  *  sala2/dificultat
  * 
+ * Per comensar la seua funció
+ *  sala2/comensa       //Genèrica amb ambientació
+ *  sala2/activaPunxos  //Específica, només activa el sensor reliquia Punxos
+ * 
  * Controla els leds centrals de la sala2
  *  sala2/encenLeds
  *  sala2/apagaLeds
@@ -89,10 +93,12 @@ const int RELE_ELECTROIMAN = 2;   //electroiman porta sala punxos
 
 int estat=0; //Variable per determinar el estat de  la baixada del sostre
              //estat = 0 (no ha comensat)
-             //estat = 1 (baixa 12 segs i para 23 segs)
-             //estat = 2 (baixa 12 segs i para 23 segs)
+             //estat = 1 (baixa 13 segs i para 80 segs)
+             //estat = 2 (baixa 13 segs i para 80 segs)
              //.....
-             //estat = 5 (baixa 12 segs i para definitivament)
+             //estat = 5 (baixa 13 segs i para definitivament)
+
+bool comensa=false; //Variable per activar o desactivar sensor Punxos
 
 
 //Variable de temps per a la sequencia 
@@ -187,6 +193,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
      //wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms           
      resetFunc(); //llamada a la funcio de reset
   }
+
+  res=strcmp(topic,"sala2/comensa");
+  if (res == 0) {    //comensa sensor
+      comensa=true;
+  }
+
+  res=strcmp(topic,"sala2/activaPunxos");
+  if (res == 0) {    //comensa a funcionar sensor reliquia Punxos
+      comensa=true;
+  }
+
+  res=strcmp(topic,"sala2/desctivaPunxos");
+  if (res == 0) {    //desactiva sensor reliquia Punxos
+      comensa=false;
+  }
  
   res=strcmp(topic,"sala2/encenLeds");
   if (res == 0) {    //encendre llum blanca
@@ -232,7 +253,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       analogWrite(PinLeds, 100);    
       delay(200);
       analogWrite(PinLeds,0);        
-      delay(2000);
+      delay(1500);
       analogWrite(PinLeds, 100);    
       delay(100);     
       analogWrite(PinLeds, 255);    
@@ -318,6 +339,8 @@ void reconnect() {
       #endif
       client.subscribe("sala2/reset"); 
       client.subscribe("sala2/resetLeds");  
+      client.subscribe("sala2/comensa");
+      client.subscribe("sala2/activaPunxos");
       client.subscribe("sala2/encenLeds");
       client.subscribe("sala2/apagaLeds");
       client.subscribe("sala2/trona");      
@@ -355,31 +378,33 @@ unsigned long controlTemps = 0;
 
 void loop() {
 
-  boolean existeReliquia = digitalRead(FinalCarrera);
-  boolean existeReliquiaReal = false;
-  
-  if (!iniciaSostre && existeReliquia){
-    if (millis()-controlTemps < 50 ) cont2++;
-    controlTemps=millis();
-    if (cont2 > 1000) {
-      existeReliquiaReal=true;      
+  if (comensa) { //Variable important que activa el sensor dels punxos
+
+    boolean existeReliquia = digitalRead(FinalCarrera);
+    boolean existeReliquiaReal = false;
+    
+    if (!iniciaSostre && existeReliquia){
+      if (millis()-controlTemps < 50 ) cont2++;
+      controlTemps=millis();
+      if (cont2 > 1000) {
+        existeReliquiaReal=true;      
+      }
     }
+  
+  
+    if (existeReliquiaReal && !iniciaSostre) {
+      #ifdef DEBUG_LED
+      // Inicia Sostre -Final Carrera Reliquia 5-     
+        Serial.println(F("[FinalCarrera] Estat=1 Baixa Pisto Sostre"));
+      #endif
+      client.publish("sala2/iniciaPunxos","on");
+      iniciaSostre=true;  
+      marcaTemps1=millis();
+      estat=1;
+      baixaPisto();
+    }
+
   }
-
-
-  if (existeReliquiaReal && !iniciaSostre) {
-    #ifdef DEBUG_LED
-    // Inicia Sostre -Final Carrera Reliquia 5-     
-      Serial.println(F("[FinalCarrera] Estat=1 Baixa Pisto Sostre"));
-    #endif
-    client.publish("sala2/iniciaPunxos","on");
-    iniciaSostre=true;  
-    marcaTemps1=millis();
-    estat=1;
-    baixaPisto();
-    digitalWrite(RELE_ANTORXES,HIGH); //APAGA ANTORXES
-  }
-
   if (estat > 0){
   
     switch(estat){    
@@ -393,7 +418,7 @@ void loop() {
                 paraPisto();
                 estat1=true;              
               }
-              if (estat1 && millis()-marcaTemps1 > 35000){ 
+              if (estat1 && millis()-marcaTemps1 > 80000){ 
                 #ifdef DEBUG_LED
                 // Inicia Sostre -Final Carrera Reliquia 5-     
                   Serial.println(F("Canvia Estat=2 Baixa Pisto Sostre"));
@@ -410,7 +435,7 @@ void loop() {
                 paraPisto();
                 estat2=true;              
               }
-              if (estat2 && millis()-marcaTemps2 > 35000){
+              if (estat2 && millis()-marcaTemps2 > 80000){
                 marcaTemps3=millis();
                 estat=3;
                 client.publish("sala2/estat3Punxos","on");
@@ -422,7 +447,7 @@ void loop() {
                 paraPisto();
                 estat3=true;              
               }
-              if (estat2 && millis()-marcaTemps3 > 35000){
+              if (estat2 && millis()-marcaTemps3 > 80000){
                 marcaTemps4=millis();
                 estat=4;
                 client.publish("sala2/estat4Punxos","on");

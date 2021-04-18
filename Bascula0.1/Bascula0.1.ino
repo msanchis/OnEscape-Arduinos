@@ -24,9 +24,17 @@
  *  sala2/basculaTancar
  *  sala2/basculaModoManual (canvia manual=0 a manual=1)
  *  sala2/basculaModoAutomatic (canvia manual=1 a manual=0)
- *  sala2/desactivaBascula (canvia de estat=1 a estat=2)
- * 
- *   
+ *  sala2/desactivaBascula (canvia de estat=1 a estat=0)
+ *  sala2/apagaUltra12
+ *  sala2/encenUltra12
+ *  sala2/apagaUltra220 
+ *  sala2/encenUltra220
+ *  sala2/tancaPortaCara
+ *  sala2/obriPortaCara
+ *  
+ * Per canviar a la segona prova bascula 
+ *  sala2/detectaCor
+ *  
  */
 
 
@@ -35,10 +43,9 @@
 #include <SPI.h>
 #include <Ethernet.h> //Conexion Ethernet con carcasa W5100
 #include <PubSubClient.h> //Conexion MQTT
-//#include <avr/wdt.h> // Incluir la librería de ATmel para poder reiniciar remotamente
 
 //VARIABLES i objectes de la xarxa i client Mosquitto
-byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFF, 0x08};//mac del arduino
+byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFF, 0xAA};//mac del arduino
 IPAddress ip(192, 168, 68, 200); //Ip fija del arduino
 IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
 
@@ -57,10 +64,10 @@ byte pinClk = A1;
 
 const int releElectroIman = 5; //encén els leds i tanca electroiman o al revés
 
-const int releImanPorta = 8; //activa el electroiman per tancar porta
-const int releUltravioleta12 = 9; // encén la llum ultavioleta 12V
-const int releUltravioleta220 = 7; //encén la llum ultravioleta 220V
-const int releCameraWifi = 6; // encén la càmera wifi
+const int releImanPorta = 7; //activa el electroiman per tancar porta
+const int releUltravioleta12 = 6; // encén la llum ultavioleta 12V
+const int releUltravioleta220 = 8; //encén la llum ultravioleta 220V
+const int releCameraWifi = 9; // encén la càmera wifi
 
 /*
 const int ledRed = 8;
@@ -110,6 +117,9 @@ void setup() {
     Serial.println(Ethernet.localIP());
     Serial.println(F("Definició dels PINS dels LEDS i RELE"));
   #endif
+
+  //pinMode(5,OUTPUT); //SS del W5100 si HIGH es selecciona SD y no funciona la xarxa  
+  //MdigitalWrite(5,LOW);
   
   pinMode(ledRed,OUTPUT);
   pinMode(ledGreen,OUTPUT);
@@ -120,7 +130,8 @@ void setup() {
   digitalWrite(ledBlue,HIGH);
   
   pinMode(releElectroIman,OUTPUT);   
-
+  digitalWrite(releElectroIman,HIGH);
+  
   pinMode(releImanPorta,OUTPUT);
   delay(3);
   digitalWrite(releImanPorta,HIGH);
@@ -136,26 +147,42 @@ void setup() {
   digitalWrite(releCameraWifi,LOW);
 
   pinMode(pinFinalCarrera,INPUT_PULLUP);
-    
+
+
+  #ifdef DEBUG_HX711
+    Serial.println(F("Abans de bascula.begin"));
+  #endif
+   
   // Iniciar sensor
   bascula.begin(pinData, pinClk);
+
+  #ifdef DEBUG_HX711
+    Serial.println(F("Despres de bascula.begin"));
+  #endif
   
   // Aplicar la calibración
   bascula.set_scale(CALIBRACION);
+
+  #ifdef DEBUG_HX711
+    Serial.println(F("Abans de bascula.tare"));
+  #endif
   // Iniciar la tara
-  // No tiene que haber nada sobre el peso
+  // IniciarNo tiene que haber nada sobre el peso
   bascula.tare();
 
+  #ifdef DEBUG_HX711
+    Serial.println(F("Despres de bascula.tare"));
+  #endif
   //delay(2000);
   //peso=bascula.get_units(15);
-  
+   
 }
 
 
 void callback(char* topic, byte* payload, unsigned int length) {
   #ifdef DEBUG_HX711
-    Serial.print(F("Message arrived"));
-    Serial.println(topic);
+    //Serial.print(F("Message arrived"));
+    //Serial.println(topic);
   #endif
   int res=strcmp(topic,"sala2/reset");
   if (res == 0) {    //RESET para toda la sala
@@ -176,12 +203,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
         digitalWrite(ledRed,HIGH);
         digitalWrite(ledGreen,HIGH);
-        digitalWrite(ledBlue,HIGH);
+        digitalWrite(ledBlue,HIGH);        
         
-        //digitalWrite(ledBlanc,HIGH);
-        //digitalWrite(ledRoig,LOW);
-        
-        digitalWrite(releElectroIman,LOW);     
+        digitalWrite(releElectroIman,HIGH);     
       }
       obri=true;   
   }
@@ -196,10 +220,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       digitalWrite(ledGreen,LOW);
       digitalWrite(ledBlue,LOW);
       
-      //digitalWrite(ledBlanc,LOW);
-      //digitalWrite(ledRoig,HIGH);
-      
-      digitalWrite(releElectroIman,HIGH);       
+      digitalWrite(releElectroIman,LOW);       
     }
     obri=false;
   }
@@ -215,9 +236,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   res=strcmp(topic,"sala2/activaBascula");
   if (res == 0) {
     #ifdef DEBUG_HX711
-      Serial.print(F("Estat = 1 activa Bascula "));
+      Serial.println(F("Estat = 1 activa Bascula "));
     #endif
-    digitalWrite(releElectroIman,HIGH);
+    digitalWrite(releElectroIman,LOW);
     estat=1;
   }
 
@@ -226,15 +247,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
     #ifdef DEBUG_HX711
       Serial.print(F("Estat = 2 desactiva Bascula "));
     #endif
-    digitalWrite(releElectroIman,LOW);
+    digitalWrite(releElectroIman,HIGH);
 
     digitalWrite(ledRed,LOW);
     digitalWrite(ledGreen,LOW);
     digitalWrite(ledBlue,LOW);
     
-    //digitalWrite(ledBlanc,LOW);
-    //digitalWrite(ledRoig,LOW);
-    estat=2;
+    estat=0;
+    obri=false;
   }
 
   res=strcmp(topic,"sala2/tancaPortaCara");
@@ -299,7 +319,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
       Serial.print(F("Entra a Encen Camara"));
     #endif
     digitalWrite(releCameraWifi,LOW);    
-  }     
+  }    
+
+  res=strcmp(topic,"sala2/detectaCor");
+  if (res==0) {
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a detectaCor"));
+    #endif
+
+    digitalWrite(ledRed,HIGH);
+    digitalWrite(ledGreen,LOW);
+    digitalWrite(ledBlue,LOW);            
+            
+    
+    estat=2;
+  }    
   
 }
 
@@ -330,6 +364,7 @@ void reconnect() {
       client.subscribe("sala2/apagaCamara");
       client.subscribe("sala2/obriPortaCara");
       client.subscribe("sala2/tancaPortaCara");
+      client.subscribe("sala2/detectaCor");
     
     } else {
       #ifdef DEBUG_HX711
@@ -349,9 +384,13 @@ unsigned long controlTemps = 0;
 float peso = 0;
 
 void loop() {
-  
+
   switch(estat){
     case 1:
+       #ifdef DEBUG_HX711
+         Serial.println("Entra antes de bascula.get_units");
+       #endif
+    
        peso = bascula.get_units(15);  
   
       #ifdef DEBUG_HX711
@@ -362,29 +401,28 @@ void loop() {
       #endif
 
        if ( !manual) {
-        if ( peso > -0.25 && peso < 0.25) {
+        if ( peso > -0.30 && peso < 0.30) {
           #ifdef DEBUG_HX711
-            Serial.print("ENTRA en peso = -0.25 ... 0.25");
+            Serial.println("ENTRA en peso = -0.30 ... 0.30");
           #endif
           
           if ( !obri) {
             #ifdef DEBUG_HX711
-              Serial.print("ENTRA en !obri");
+              Serial.println("ENTRA en !obri");
             #endif  
             
             digitalWrite(ledRed,HIGH);
             digitalWrite(ledGreen,HIGH);
             digitalWrite(ledBlue,HIGH);
-            
-            //digitalWrite(ledBlanc,HIGH);
-            //digitalWrite(ledRoig,LOW);
-            
-            digitalWrite(releElectroIman,HIGH);     
+                        
+            digitalWrite(releElectroIman,LOW);     
+            //delay(100); //per evitar rebot
           }
           obri=true;
+          Serial.println("Fin del !obri");
         }else {
           #ifdef DEBUG_HX711
-            Serial.print("ENTRA en peso <> -0.25 ... 0.25");
+            Serial.print("ENTRA en peso <> -0.30 ... 0.30");
           #endif
           
           if (obri) {
@@ -396,16 +434,65 @@ void loop() {
             digitalWrite(ledGreen,LOW);
             digitalWrite(ledBlue,LOW);
             
-            //digitalWrite(ledBlanc,LOW);
-            //digitalWrite(ledRoig,HIGH);
-            
-            digitalWrite(releElectroIman,LOW);       
+            digitalWrite(releElectroIman,HIGH);       
+            //delay(100); //per evitar rebot
           }
           obri=false;
         }
       }
       break;
+    case 2: //Segona prova Bascula PES 3.93 KG
+      peso = bascula.get_units(15);  
+  
+      #ifdef DEBUG_HX711
+        Serial.print("[HX7] Leyendo 2: ");  
+        Serial.print(peso);
+        Serial.print(" Kg");
+        Serial.println();
+      #endif
 
+       if ( !manual) {
+        if ( peso > 3.53 && peso < 4.33) { //modificar valors 
+          #ifdef DEBUG_HX711
+            Serial.print("ENTRA en peso 2-1");
+          #endif
+          
+          if ( !obri) {
+            #ifdef DEBUG_HX711
+              Serial.print("ENTRA en !obri");
+            #endif  
+            
+            digitalWrite(ledRed,HIGH);
+            digitalWrite(ledGreen,HIGH);
+            digitalWrite(ledBlue,HIGH);
+            
+            
+            digitalWrite(releElectroIman,HIGH);     
+           // FALTA electroiman porteta inferior
+          }
+          obri=true;
+        }else {
+          #ifdef DEBUG_HX711
+            Serial.print("ENTRA en peso 2-2");
+          #endif
+          
+          if (obri) {
+            #ifdef DEBUG_HX711
+              Serial.print("ENTRA en obri");
+            #endif
+
+            digitalWrite(ledRed,HIGH);
+            digitalWrite(ledGreen,LOW);
+            digitalWrite(ledBlue,LOW);            
+            
+            digitalWrite(releElectroIman,LOW);       // Canviar releElectroiman per altre relé
+            //FALTA electroiman porteta inferior
+          }
+          obri=false;          
+        }
+      }
+      
+      break;
   }
 
   boolean tancaPorta = digitalRead(pinFinalCarrera);
@@ -414,7 +501,7 @@ void loop() {
   if (!iniciaPasillo && !tancaPorta){
     if (millis()- controlTemps < 50 ) cont2++;
     controlTemps=millis();
-    if (cont2 > 1000) {
+    if (cont2 > 5500) {
       tancaPortaReal=true;      
     }
   }
@@ -449,40 +536,3 @@ void loop() {
   client.loop();  
   
 }
-
-//CODIGO BACKUP
-// El pes exacte de la relíquia és 4.21 Kg <> ¿4.24?
-// MODO NO FUNCIONA EL RESET
-/*
-  if ( !manual) {
-    if ( peso > 3.9 && peso < 4.4) {
-      #ifdef DEBUG_HX711
-        Serial.print("ENTRA en peso = 3.9 - 4.4");
-      #endif
-      
-      if ( !obri) {
-        #ifdef DEBUG_HX711
-          Serial.print("ENTRA en !obri");
-        #endif  
-        digitalWrite(ledBlanc,HIGH);
-        digitalWrite(ledRoig,LOW);
-        digitalWrite(releElectroIman,LOW);     
-      }
-      obri=true;
-    }else {
-      #ifdef DEBUG_HX711
-        Serial.print("ENTRA en peso <> 3.9 - 4.4");
-      #endif
-      
-      if (obri) {
-        #ifdef DEBUG_HX711
-          Serial.print("ENTRA en obri");
-        #endif
-        digitalWrite(ledBlanc,LOW);
-        digitalWrite(ledRoig,HIGH);
-        digitalWrite(releElectroIman,HIGH);       
-      }
-      obri=false;
-    }
-  }
-*/

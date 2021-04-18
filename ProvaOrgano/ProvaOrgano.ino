@@ -60,8 +60,11 @@
 //Variable per activar o desactivar el organ
 boolean actiu=false;
 
-//Variable per saber si han encertat un acord
+//Variable per saber si han encertat un acord prova1
 boolean acordCorrecte=false;
+
+//Variable per saber si han encertat acord prova2 Final
+boolean provaFinal=false;
 
 //Variable per seguir el estat de la prova del organ i el sostre de punxos i verificar el acord correcte
 int estat=0;
@@ -418,6 +421,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
        digitalWrite(led3,LOW);
      }
   }
+
+  res=strcmp(topic,"sala2/detectaCor");
+  if (res == 0) {
+    #ifdef DEBUG_ORGAN
+        Serial.print(F("ENTRA a detectaCor"));                
+     #endif
+     estat=8;
+     actiu=true;
+     digitalWrite(led1,HIGH);
+     digitalWrite(led2,HIGH);
+     digitalWrite(led3,HIGH);
+  }
 }
 
 void reconnect() {
@@ -445,6 +460,7 @@ void reconnect() {
       client.subscribe("sala2/estat3Punxos");
       client.subscribe("sala2/estat4Punxos");
       client.subscribe("sala2/estat5Punxos");      
+      client.subscribe("sala2/finalPunxos");
 
       client.subscribe("sala2/encenUllDret");
       client.subscribe("sala2/apagaUllDret");
@@ -452,7 +468,8 @@ void reconnect() {
       client.subscribe("sala2/apagaUllEsquerra");
       client.subscribe("sala2/encenBoca");      
       client.subscribe("sala2/apagaBoca");      
-      
+
+      client.subscribe("sala2/detectaCor");
     } else {
       #ifdef DEBUG_ORGAN
         Serial.print(F("FALLA, rc="));
@@ -818,18 +835,17 @@ void loop ()
             client.publish("sala2/acordCorrecte","on");
             acordCorrecte=true;
           }
+      case 8:
+           if (!provaFinal && !EstadoTecla20  && !EstadoTecla16 && !EstadoTecla14 && !EstadoTecla9 && !EstadoTecla5){
+            client.publish("sala2/acordFinalCorrecte","on");
+            provaFinal=true;           
+           }
       break;
-      /*case 5:
-           if (EstadoTecla13 && EstadoTecla14 && EstadoTecla15){
-            client.publish("sala2/acordCorrecte","on");
-          }
-      break;
-      */
     }
     
   } //IF si esta actiu 
 
-  if (acordCorrecte) {
+  if (estat != 8 && acordCorrecte) {
     apagaLedsInicial();
     actiu=false;
   }

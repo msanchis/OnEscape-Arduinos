@@ -50,6 +50,8 @@
  * Per a desactivar organ i para baixada punxos/llum ultravioleta punxos
  *   sala2/acordCorrecte
  *  
+ * Per a finalitzar el pedestal
+ *   sala2/finalPedestal
  */
 
 
@@ -136,6 +138,9 @@ const int RelElectro7 = 3; // Pin para cortar corriente Electroiman7 y encender 
 const int RelElectro8 = 2; // Pin encender luz6
 
 boolean pasaEstat=true; //Variable per comprovar que totes les reliquies estan al seu lloc per poder avançar
+
+
+boolean entraFinal=false; //Comprova que ha realitzat la sequencia final
 
 void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
@@ -356,7 +361,7 @@ void loop() {
     digitalWrite(RelElectro1,HIGH); // Desactivem el electroiman4 per a que obriga comporta
     estat=1; 
   }
-
+*/
   if (DEBUG && (millis() > (debugTemps + 500))) {
     debugTemps=millis();
     Serial.print("ESTAT ");
@@ -389,7 +394,7 @@ void loop() {
     Serial.print(value12);
     Serial.println(" ");  
   }
-*/
+
 //SENSORS RELIQUIA1
 if (value7 == 0 || value8 == 0) condicio10=true;
 else condicio10=false;
@@ -610,6 +615,21 @@ if (estat < 7) {
              
          final=true;
 
+         client.publish("sala2/finalPedestal","on");//Final Pedestal         
+         
+      }
+      break;
+
+  }
+  
+  if (!client.connected()) {
+    reconnect();
+  }  
+  
+  client.loop();
+
+  if (final && !entraFinal) {
+    
          delay(1000);
          digitalWrite(RelElectro7,LOW); //Apaguem totes les llums
          delay(500);
@@ -640,16 +660,8 @@ if (estat < 7) {
          
          if (DEBUG) Serial.println("RelElectro8 HIGH");
          digitalWrite(RelElectro8,HIGH); //Desactivem electroiman de dLOW i encenem la llum de dLOW
-      }
-      break;
 
+         entraFinal=true;
   }
-  
-  if (!client.connected()) {
-    reconnect();
-  }  
-  
-  client.loop();
-  
    
 }
