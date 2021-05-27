@@ -31,9 +31,16 @@
  *  sala2/encenUltra220
  *  sala2/tancaPortaCara
  *  sala2/obriPortaCara
+ *  sala2/tancaPortaFinalBascula
+ *  sala2/obriPortaFinalBascula
  *  
  * Per canviar a la segona prova bascula 
  *  sala2/detectaCor
+ *  
+ *  EVENTS QUE ENVIA
+ *  
+ *  sala2/tancaPortaCaraVeritat
+ *  sala2/puzzleFinalBascula 
  *  
  */
 
@@ -52,7 +59,7 @@ IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
 EthernetClient ethClient; //Interfaz de red ethernet
 PubSubClient client(ethClient); //cliente MQTT
 
-#define DEBUG_HX711
+//#define DEBUG_HX711
 
 // Parámetro para calibrar el peso y el sensor
 #define CALIBRACION 20880.0
@@ -81,7 +88,7 @@ const int ledBlue = 4;
 bool iniciaPasillo=false;
 
 int pinFinalCarrera=0;
-//const int pinFinalCarrera=A5;
+int relePuzzleFinalBascula=1;
 
 boolean obri = false; //Variable per assignar el estat del electroiman (porta)
 boolean manual = false; //Variable per canviar al mode manual i poder obrir i tancar la porta remotament
@@ -148,6 +155,7 @@ void setup() {
 
   pinMode(pinFinalCarrera,INPUT_PULLUP);
 
+  pinMode(relePuzzleFinalBascula,OUTPUT);  
 
   #ifdef DEBUG_HX711
     Serial.println(F("Abans de bascula.begin"));
@@ -325,15 +333,32 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (res==0) {
      #ifdef DEBUG_HX711
       Serial.print(F("Entra a detectaCor"));
-    #endif
+     #endif             
+    
+    estat=2;
 
     digitalWrite(ledRed,HIGH);
     digitalWrite(ledGreen,LOW);
     digitalWrite(ledBlue,LOW);            
-            
-    
-    estat=2;
   }    
+
+  res=strcmp(topic,"sala2/obriPortaFinalBascula");
+  if (res==0){
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a obriPortaFinalBascula"));
+     #endif      
+
+     digitalWrite(relePuzzleFinalBascula,LOW);     
+  }
+
+  res=strcmp(topic,"sala2/tancaPortaFinalBascula");
+  if (res==0){
+     #ifdef DEBUG_HX711
+      Serial.print(F("Entra a tancaPortaFinalBascula"));
+     #endif      
+
+     digitalWrite(relePuzzleFinalBascula,HIGH);     
+  }
   
 }
 
@@ -365,7 +390,9 @@ void reconnect() {
       client.subscribe("sala2/obriPortaCara");
       client.subscribe("sala2/tancaPortaCara");
       client.subscribe("sala2/detectaCor");
-    
+      client.subscribe("sala2/obriPortaFinalBascula");
+      client.subscribe("sala2/tancaPortaFinalBascula");
+      
     } else {
       #ifdef DEBUG_HX711
         Serial.print(F("failed, rc="));
@@ -465,10 +492,11 @@ void loop() {
             digitalWrite(ledRed,HIGH);
             digitalWrite(ledGreen,HIGH);
             digitalWrite(ledBlue,HIGH);
-            
-            
-            digitalWrite(releElectroIman,HIGH);     
-           // FALTA electroiman porteta inferior
+                        
+            //FALTA PROVAR
+            client.publish("sala2/puzzleFinalBascula","on");
+            digitalWrite(relePuzzleFinalBascula,LOW);
+           
           }
           obri=true;
         }else {
@@ -485,8 +513,8 @@ void loop() {
             digitalWrite(ledGreen,LOW);
             digitalWrite(ledBlue,LOW);            
             
-            digitalWrite(releElectroIman,LOW);       // Canviar releElectroiman per altre relé
-            //FALTA electroiman porteta inferior
+            digitalWrite(relePuzzleFinalBascula,HIGH);   
+            //FALTA PROVAR
           }
           obri=false;          
         }
@@ -499,9 +527,10 @@ void loop() {
   boolean tancaPortaReal=false;
   
   if (!iniciaPasillo && !tancaPorta){
-    if (millis()- controlTemps < 50 ) cont2++;
+    if (millis()- controlTemps < 150 ) cont2++;
+    else cont2=0;
     controlTemps=millis();
-    if (cont2 > 5500) {
+    if (cont2 > 12500) { //VALOR DE PROVA 8500
       tancaPortaReal=true;      
     }
   }

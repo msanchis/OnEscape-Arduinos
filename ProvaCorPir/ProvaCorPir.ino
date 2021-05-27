@@ -24,6 +24,10 @@
  *  sala2/activaCor
  *  sala2/finalPedestal
  *  
+ * Activa relé bomba aigua
+ *  sala2/activaBombaAigua
+ *  sala2/desactivaBombaAigua
+ *  
  * Desactiva el sensor (estat=0)
  *  sala2/desactivaCor
  *  
@@ -38,7 +42,7 @@
 #include <PubSubClient.h> //Conexio MQTT
 
 //VARIABLES i objectes de la xarxa i client Mosquitto
-const byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xEE, 0x1D};//mac del arduino
+ const byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xEE, 0x1D};//mac del arduino
 const IPAddress ip( 192, 168, 68, 209); //Ip fija del arduino PRODUCCIO
 const IPAddress server( 192, 168, 68, 55); //Ip del server de mosquitto PROD
 //const IPAddress ip( 192, 168, 1, 20); //Ip fija del arduino DEBUG
@@ -49,9 +53,9 @@ PubSubClient client(ethClient); //cliente MQTT
 
 #define DEBUG_LED //Comentar quant no s'utilitze el DEBUG per espai en memòria dinàmica
 
-
-#define PIR 4 //Establece el pin 2 para el sensor PIR
-#define RELE 3 //Establece el pin 3 para el relé
+#define BOMBA 8 //Pin 6 per a relé Bomba Aigua
+#define PIR 4 //Estableix el pin 4 per al sensor PIR
+#define RELE 3 //Estableix el pin 3 per al relé Electroiman COR
 
 int tiempo = 5000; //Tiempo antes de soltar la llave
 boolean sensor; //Variable que almacena el estado del sensor (activado/desactivado)
@@ -107,7 +111,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
     temps = 0;
     entra = false;
   }
-  
+
+  res = strcmp(topic,"sala2/activaBombaAigua");
+  if (res == 0){
+    digitalWrite(BOMBA,HIGH);
+  }
+
+  res = strcmp(topic,"sala2/desactivaBombaAigua");
+  if (res == 0){
+    digitalWrite(BOMBA,LOW);
+  }
 
 }
 
@@ -133,6 +146,8 @@ void reconnect() {
       client.subscribe("sala2/tancaClauCor");
       client.subscribe("sala2/activaCor");
       client.subscribe("sala2/desactivaCor");
+      client.subscribe("sala2/activaBombaAigua");
+      client.subscribe("sala2/desactivaBombaAigua");
       client.subscribe("sala2/finalPedestal");
 
     } else {
@@ -164,6 +179,7 @@ void setup()
  
   pinMode(PIR, INPUT); //Establece el pin del sensor como entrada
   pinMode(RELE, OUTPUT); //Establece el pin del relé como salida
+  pinMode(BOMBA, OUTPUT);  //Bomba salida
 
 #ifdef DEBUG_LED
   Serial.println(F("connectant..."));

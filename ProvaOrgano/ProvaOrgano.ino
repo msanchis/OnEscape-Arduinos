@@ -55,7 +55,7 @@
 //#include <avr/wdt.h> // Incluir la librería de ATmel per a reiniciar el arduino
 
 //Define per veure els prints al monitor
-#define DEBUG_ORGAN  
+//#define DEBUG_ORGAN  
 
 //Variable per activar o desactivar el organ
 boolean actiu=false;
@@ -367,7 +367,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a iniciaPunxos"));                
      #endif
-     if (actiu) estat=1;
+     if (actiu) {
+      estat=1;
+      digitalWrite(led1,HIGH);
+      digitalWrite(led2,LOW);
+      digitalWrite(led3,LOW);
+     }
   }
 
   res=strcmp(topic,"sala2/estat2Punxos");
@@ -377,8 +382,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #endif
      if (actiu) {
       estat=2;     
-      digitalWrite(led1,HIGH);
-      digitalWrite(led2,LOW);
+      digitalWrite(led1,LOW);
+      digitalWrite(led2,HIGH);
       digitalWrite(led3,LOW);
      }
   }
@@ -391,8 +396,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
      if (actiu) {
        estat=3;
        digitalWrite(led1,LOW);
-       digitalWrite(led2,HIGH);
-       digitalWrite(led3,LOW);
+       digitalWrite(led2,LOW);
+       digitalWrite(led3,HIGH);
      }
   }
 
@@ -403,9 +408,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #endif
      if (actiu) {
        estat=4;
-       digitalWrite(led1,LOW);
-       digitalWrite(led2,LOW);
-       digitalWrite(led3,HIGH);
+       digitalWrite(led1,HIGH);
+       digitalWrite(led2,HIGH);
+       digitalWrite(led3,LOW);
      }
   }
 
@@ -416,9 +421,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #endif
      if (actiu) {
      estat=5;
-       digitalWrite(led1,HIGH);
-       digitalWrite(led2,HIGH);
-       digitalWrite(led3,LOW);
+      
      }
   }
 

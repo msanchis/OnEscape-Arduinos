@@ -31,7 +31,6 @@
 
 
 int estat=0; //La VARIABLE més important de la sala... determina l'estat en que es troba el sistema
-boolean para=false; //Per a enviar un event MQTT només
 int cont=0; //Variable per a enviar sala1/finalcarrera cada 100 deteccions
 
 unsigned long marcaTemps1 = 0;
@@ -224,7 +223,23 @@ void callback(char* topic, byte* payload, unsigned int length) {
       estat=8;      
       baixaUnEscalo();      
   }
+
+  res=strcmp(topic,"sala1/pujaPlataforma");
+   if (res == 0) {
+      if (DEBUG) {
+        Serial.print(F("ENTRA en pujaPlataforma"));
+      }
+      pujaPisto();
+  }
   
+  res=strcmp(topic,"sala1/paraPlataforma");
+   if (res == 0) {
+      if (DEBUG) {
+        Serial.print(F("ENTRA en pujaPlataforma"));
+      }
+      paraPisto();
+      estat=9;
+  }
 }
 
 void transicio1(){
@@ -268,7 +283,7 @@ void baixaDelTot(){
     Serial.println(F("ENTRA a baixaDelTot"));
   }
   marcaTemps7=millis();  
-   entra1=true;
+  entra1=true;
   entra2=true;
   entra3=true;
   entra4=true;
@@ -277,7 +292,7 @@ void baixaDelTot(){
 
 void baixaUnEscalo(){
   if (DEBUG) {
-    Serial.println(F("ENTRA a baixaUnEscalo"));
+    Serial.println(F("ENTRA a baixaUnEscalo2"));
   }
   marcaTemps8=millis(); 
 }
@@ -291,8 +306,7 @@ void reinici(){
   entra2=false;
   entra3=false;
   entra4=false;
-  entra5=false;
-  para=false;
+  entra5=false;  
 }
 
 void reiniciError(){
@@ -302,20 +316,26 @@ void reiniciError(){
   marcaTemps6=millis();
 }
 
-void baixaPisto(){
-    digitalWrite(RELE_ALIMENTACIO,LOW);
-    digitalWrite(RELE_INVERSOR1,LOW);
-    digitalWrite(RELE_INVERSOR2,LOW);  
-}
-
-void pujaPisto(){
-  digitalWrite(RELE_ALIMENTACIO,LOW);
+void paraPisto(){
+  digitalWrite(RELE_ALIMENTACIO,HIGH);
   digitalWrite(RELE_INVERSOR1,HIGH);
   digitalWrite(RELE_INVERSOR2,HIGH);
 }
 
-void paraPisto(){
-  digitalWrite(RELE_ALIMENTACIO,HIGH);
+void baixaPisto(){
+    //paraPisto();
+    //elay(5);
+    
+    digitalWrite(RELE_INVERSOR1,LOW);
+    digitalWrite(RELE_INVERSOR2,LOW);
+    //delay(2);  
+    digitalWrite(RELE_ALIMENTACIO,LOW);
+}
+
+void pujaPisto(){
+  //paraPisto();
+  //delay(5);
+  digitalWrite(RELE_ALIMENTACIO,LOW);
   digitalWrite(RELE_INVERSOR1,HIGH);
   digitalWrite(RELE_INVERSOR2,HIGH);
 }
@@ -345,6 +365,8 @@ void reconnect() {
       client.subscribe("sala1/comensa");
       client.subscribe("sala1/baixaPlataforma");
       client.subscribe("sala1/baixaEscalo");
+      client.subscribe("sala1/pujaPlataforma");
+      client.subscribe("sala1/paraPlataforma");
       
     } else {
       if (DEBUG) {
@@ -368,7 +390,7 @@ int cont1=0;
 void loop() {
 
   boolean puertaCerrada = digitalRead(puerta);
-
+  cont1++;
 
   /* if (DEBUG) {  
     if ( cont1 == 0 || (cont1 % 5000 == 0)){
@@ -389,7 +411,7 @@ void loop() {
  
   if (comensa && !puertaCerrada){
     seHaAbierto=true;      
-    if ( cont1 == 0 || (cont1 % 8000 == 0)){
+    if ( cont1 == 0 || (cont1 % 10000 == 0)){
       client.publish("sala1/comensaiportaoberta","on");
     }
   }
@@ -422,24 +444,10 @@ void loop() {
         EEPROM.update(0,false);
      }
   }
-  /*
-  boolean estado = digitalRead(pulsador); //Leemos el estado del interruptor  
   
-  if (estado) {
-    para=true;   
-    if ( cont == 0 || (cont % 40000 == 0)){
-      client.publish("sala1/finalcarrera","on");    
-       if (DEBUG) {
-          Serial.println(F("FINAL de CARRERA: "));          
-        }
-      paraPisto();
-    }
-    cont++;
-  }
-*/
   switch(estat){
     case 1:      
-      if (!para && !entra1 && millis() - marcaTemps1 < 11000 ) {
+      if (!entra1 && millis() - marcaTemps1 < 11000 ) {
         baixaPisto();
       }else{
         paraPisto();
@@ -447,7 +455,7 @@ void loop() {
       }
       break;
     case 2:
-      if (!para && !entra2 && millis() - marcaTemps2 < 11000 ) {
+      if (!entra2 && millis() - marcaTemps2 < 11000 ) {
         baixaPisto();
       }else{
         paraPisto();
@@ -455,7 +463,7 @@ void loop() {
       }
       break;
     case 3:
-      if (!para && !entra3 && millis() - marcaTemps3 < 11000 ) {
+      if (!entra3 && millis() - marcaTemps3 < 11000 ) {
         baixaPisto();
       }else{
         paraPisto();
@@ -463,7 +471,7 @@ void loop() {
       }
       break;
     case 4:
-      if (!para && !entra4 && millis() - marcaTemps4 < 11000 ) {
+      if (!entra4 && millis() - marcaTemps4 < 11000 ) {
         baixaPisto();
       }else{
         paraPisto();
@@ -471,7 +479,7 @@ void loop() {
       }
       break;
     case 5:
-      if (!para && !entra5 && millis() - marcaTemps5 < 11500 ) {
+      if (!entra5 && millis() - marcaTemps5 < 14500 ) {
         baixaPisto();
       }else{
         paraPisto();
@@ -479,7 +487,7 @@ void loop() {
       }
       break;
     case 6:
-      if (millis() - marcaTemps6 < 60000) {
+      if (millis() - marcaTemps6 < 80000) {        
         pujaPisto();        
       }else{
         paraPisto();        
@@ -487,7 +495,7 @@ void loop() {
       }
       break;
     case 7:
-      if (!para && millis() - marcaTemps7 < 60000) {
+      if (millis() - marcaTemps7 < 60000) {
         baixaPisto();
       }else{
         paraPisto();
@@ -495,7 +503,7 @@ void loop() {
       }
       break;
     case 8:
-      if (!para && millis() - marcaTemps8 < 11200) {
+      if (millis() - marcaTemps8 < 11200) {
         baixaPisto();
       }else{
         paraPisto();

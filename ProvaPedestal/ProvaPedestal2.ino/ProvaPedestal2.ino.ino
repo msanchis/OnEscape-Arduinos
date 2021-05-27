@@ -38,6 +38,15 @@
  * 
  * Events que envia
  * 
+ * Per activar efecte so despres de puzzle
+ *   sala2/activaPuzzle1
+ * 
+ * Per activar efecte so despres de reliquies
+ *   sala2/reliquia1
+ *   sala2/reliquia2
+ *   ...
+ *   sala2/reliquia6
+ * 
  * Per activar la bascula despres de reliquia1
  *   sala2/activaBascula
  * 
@@ -475,6 +484,7 @@ if (estat < 7) {
       if (marcaTemps0 > 0 && (millis()-marcaTemps0 > 300)){
         if (DEBUG) Serial.println("RelElectro1 HIGH");
         digitalWrite(RelElectro1,HIGH); // Desactivem el electroiman4 per a que obriga comporta
+        client.publish("sala2/activaPuzzle1","1");
         estat=1;        
       }      
       break;
@@ -491,7 +501,8 @@ if (estat < 7) {
       }
       if (marcaTemps1 > 0 && (millis()-marcaTemps1 > 300)){
          if (DEBUG) Serial.println("RelElectro2 HIGH");
-         digitalWrite(RelElectro2,HIGH); //Desactivem electroiman6 i encenem llum 4        
+         digitalWrite(RelElectro2,HIGH); //Desactivem electroiman6 i encenem llum 4   
+         client.publish("sala2/reliquia1","1");     
          estat=2;
       }else digitalWrite(RelElectro2,LOW); //Apaguem llum     
       break;             
@@ -511,6 +522,7 @@ if (estat < 7) {
         digitalWrite(RelElectro3,HIGH); //Desactivem electroiman1 i encenem llum 6
         estat=3;
         //Enviem publicacio segona reliquia activada (ENCÉN LLUM BASCULA)
+        client.publish("sala2/reliquia2","1");
         client.publish("sala2/activaBascula","ON");
         
       }else digitalWrite(RelElectro3,LOW);
@@ -531,6 +543,7 @@ if (estat < 7) {
         digitalWrite(RelElectro4,HIGH); //Desactivem electroiman5 i encenem llum 1
         estat=4;
         //Enviem publicacio tercera reliquia activada
+        client.publish("sala2/reliquia3","1");
         client.publish("sala2/desactivaBascula","ON");
       }else digitalWrite(RelElectro4,LOW);
       break;
@@ -548,6 +561,7 @@ if (estat < 7) {
       if (marcaTemps4 > 0 && (millis()-marcaTemps4 > 300)){
          if (DEBUG) Serial.println("RelElectro5 HIGH");
         digitalWrite(RelElectro5,HIGH); //Desactivem electroiman3 i encenem llum 5
+        client.publish("sala2/reliquia4","1");
         estat=5;
       }else digitalWrite(RelElectro5,LOW);
       break;
@@ -566,6 +580,7 @@ if (estat < 7) {
          if (DEBUG) Serial.println("RelElectro6 HIGH");
         digitalWrite(RelElectro6,HIGH); //Desactivem electroiman6 i encenem llum 3
         //Enviem publicacio segona reliquia activada (ENCÉN LLUM BASCULA)
+        client.publish("sala2/reliquia5","1");
         client.publish("sala2/activaOrgan","ON");
         estat=6;
       }else digitalWrite(RelElectro6,LOW);
@@ -583,6 +598,7 @@ if (estat < 7) {
       if (marcaTemps6 > 0 && (millis()-marcaTemps6 > 300)){
          if (DEBUG) Serial.println("RelElectro7 HIGH");
         digitalWrite(RelElectro7,HIGH); //Encenem llum 6
+        client.publish("sala2/reliquia6","1");
         estat=7;
       }else digitalWrite(RelElectro7,LOW);
       break;
