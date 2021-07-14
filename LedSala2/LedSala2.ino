@@ -13,7 +13,7 @@
  * Leds sala central PIN DIGITAL 9
  * Electroiman Sala Punxos PIN DIGITAL 2
  * 
- * Final de carrera (Reliquia 5) PIN DIGITAL 11
+ * Final de carrera (Reliquia 5) PIN DIGITAL 8
  * 
  ***********************
  * 
@@ -54,10 +54,10 @@
  *  
  * Per controlar el event de la baixada de punxos
  *  sala2/iniciaPunxos 
- *  sala2/estat2Punxos
- *  sala2/estat3Punxos
- *  sala2/estat4Punxos
- *  sala2/estat5Punxos
+ *  sala2/punxos1
+ *  sala2/punxos2
+ *  sala2/punxos3
+ *  sala2/punxos4 #De moment no s utilitza
  *  sala2/finalPunxos 
  * 
  */
@@ -113,10 +113,10 @@ unsigned long marcaTemps5 = 0;
 void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 void baixaPisto(){
-    paraPisto();
-    digitalWrite(RELE_ALIMENTACIO,LOW);
-    digitalWrite(RELE_INVERSOR1,LOW);
-    digitalWrite(RELE_INVERSOR2,LOW);  
+  paraPisto();
+  digitalWrite(RELE_ALIMENTACIO,LOW);
+  digitalWrite(RELE_INVERSOR1,LOW);
+  digitalWrite(RELE_INVERSOR2,LOW);  
 }
 
 void pujaPisto(){
@@ -149,7 +149,7 @@ void setup() {
       
   //delay(1000); //Cambio de 1000 a 100
 
-    pinMode(PinLeds,OUTPUT);  
+  pinMode(PinLeds,OUTPUT);  
 
   pinMode(RELE_ALIMENTACIO, OUTPUT);           // Pin relé alimentación como salida
   pinMode(RELE_INVERSOR1, OUTPUT);              // Pin relé inversor1 como salida
@@ -204,7 +204,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       comensa=true;
   }
 
-  res=strcmp(topic,"sala2/desctivaPunxos");
+  res=strcmp(topic,"sala2/desactivaPunxos");
   if (res == 0) {    //desactiva sensor reliquia Punxos
       comensa=false;
   }
@@ -384,9 +384,10 @@ void loop() {
     boolean existeReliquiaReal = false;
     
     if (!iniciaSostre && existeReliquia){
-      if (millis()-controlTemps < 50 ) cont2++;
+      if (controlTemps > 0 && millis()-controlTemps < 150 ) cont2++;
+      else cont2=0;
       controlTemps=millis();
-      if (cont2 > 1000) {
+      if (cont2 > 3000) {
         existeReliquiaReal=true;      
       }
     }
@@ -425,7 +426,7 @@ void loop() {
                 #endif
                 marcaTemps2=millis();
                 estat=2;
-                client.publish("sala2/estat2Punxos","on");
+                client.publish("sala2/punxos1","on");
                 baixaPisto();              
               }
       break;
@@ -438,7 +439,7 @@ void loop() {
               if (estat2 && millis()-marcaTemps2 > 80000){
                 marcaTemps3=millis();
                 estat=3;
-                client.publish("sala2/estat3Punxos","on");
+                client.publish("sala2/punxos2","on");
                 baixaPisto();              
               }
       break;
@@ -450,7 +451,7 @@ void loop() {
               if (estat2 && millis()-marcaTemps3 > 80000){
                 marcaTemps4=millis();
                 estat=4;
-                client.publish("sala2/estat4Punxos","on");
+                client.publish("sala2/punxos3","on");
                 baixaPisto();              
               }
       break;

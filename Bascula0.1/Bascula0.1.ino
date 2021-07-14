@@ -1,4 +1,4 @@
-/*
+ /*
  * Arduino UNO (pared trasera cara veritat, darrere bascula)
  * 
  * 4 reles
@@ -76,11 +76,6 @@ const int releUltravioleta12 = 6; // encén la llum ultavioleta 12V
 const int releUltravioleta220 = 8; //encén la llum ultravioleta 220V
 const int releCameraWifi = 9; // encén la càmera wifi
 
-/*
-const int ledRed = 8;
-const int ledGreen = 9;
-const int ledBlue = 10;
-*/
 const int ledRed = 3;
 const int ledGreen = 2;
 const int ledBlue = 4;
@@ -101,7 +96,7 @@ void(* resetFunc) (void) = 0; //declare reset function @ address 0
 int estat = 0; //variable para definir el estado del arduino
                 // 0 --> No interactua con nada... Electroiman encendido, led apagado, luces led apagadas
                 // 1 --> Prueba1 ... Electroiman y led en función del peso de la báscula
-                // 2 --> Prueba2 ... Indefinido de momento
+                // 2 --> Prueba2 ... Prova final
 
 void setup() {
 
@@ -114,8 +109,7 @@ void setup() {
    //MQTT
   client.setServer(server, 1883);
   client.setCallback(callback);
-
-  //Ethernet.begin(mac);   
+  
   Ethernet.begin(mac,ip);
   
   delay(100); //Cambio de 1000 a 100
@@ -125,9 +119,6 @@ void setup() {
     Serial.println(F("Definició dels PINS dels LEDS i RELE"));
   #endif
 
-  //pinMode(5,OUTPUT); //SS del W5100 si HIGH es selecciona SD y no funciona la xarxa  
-  //MdigitalWrite(5,LOW);
-  
   pinMode(ledRed,OUTPUT);
   pinMode(ledGreen,OUTPUT);
   pinMode(ledBlue,OUTPUT);
@@ -155,7 +146,8 @@ void setup() {
 
   pinMode(pinFinalCarrera,INPUT_PULLUP);
 
-  pinMode(relePuzzleFinalBascula,OUTPUT);  
+  pinMode(relePuzzleFinalBascula,OUTPUT); 
+  digitalWrite(relePuzzleFinalBascula,HIGH); 
 
   #ifdef DEBUG_HX711
     Serial.println(F("Abans de bascula.begin"));
@@ -174,23 +166,20 @@ void setup() {
   #ifdef DEBUG_HX711
     Serial.println(F("Abans de bascula.tare"));
   #endif
+  
   // Iniciar la tara
-  // IniciarNo tiene que haber nada sobre el peso
   bascula.tare();
 
   #ifdef DEBUG_HX711
     Serial.println(F("Despres de bascula.tare"));
   #endif
-  //delay(2000);
-  //peso=bascula.get_units(15);
    
 }
 
-
 void callback(char* topic, byte* payload, unsigned int length) {
   #ifdef DEBUG_HX711
-    //Serial.print(F("Message arrived"));
-    //Serial.println(topic);
+    Serial.print(F("Message arrived"));
+    Serial.println(topic);
   #endif
   int res=strcmp(topic,"sala2/reset");
   if (res == 0) {    //RESET para toda la sala
@@ -418,7 +407,7 @@ void loop() {
          Serial.println("Entra antes de bascula.get_units");
        #endif
     
-       peso = bascula.get_units(15);  
+       peso = bascula.get_units(13);  
   
       #ifdef DEBUG_HX711
         Serial.print("[HX7] Leyendo: ");  
@@ -428,9 +417,9 @@ void loop() {
       #endif
 
        if ( !manual) {
-        if ( peso > -0.30 && peso < 0.30) {
+        if ( peso > -0.40 && peso < 0.40) {
           #ifdef DEBUG_HX711
-            Serial.println("ENTRA en peso = -0.30 ... 0.30");
+            Serial.println("ENTRA en peso = -0.40 ... 0.40");
           #endif
           
           if ( !obri) {
@@ -446,10 +435,10 @@ void loop() {
             //delay(100); //per evitar rebot
           }
           obri=true;
-          Serial.println("Fin del !obri");
+          //Serial.println("Fin del !obri");
         }else {
           #ifdef DEBUG_HX711
-            Serial.print("ENTRA en peso <> -0.30 ... 0.30");
+            Serial.print("ENTRA en peso <> -0.40 ... 0.40");
           #endif
           
           if (obri) {
@@ -479,9 +468,9 @@ void loop() {
       #endif
 
        if ( !manual) {
-        if ( peso > 3.53 && peso < 4.33) { //modificar valors 
+        if ( peso > 3.53 && peso < 4.33) { //> 3.53  < 4.33
           #ifdef DEBUG_HX711
-            Serial.print("ENTRA en peso 2-1");
+            Serial.print("ENTRA en peso > 3.53 Y < 4.33");
           #endif
           
           if ( !obri) {
@@ -530,7 +519,7 @@ void loop() {
     if (millis()- controlTemps < 150 ) cont2++;
     else cont2=0;
     controlTemps=millis();
-    if (cont2 > 12500) { //VALOR DE PROVA 8500
+    if (cont2 > 12500) { //VALOR DE PROVA 8500 DEFINITIU DE MOMENT 12500
       tancaPortaReal=true;      
     }
   }

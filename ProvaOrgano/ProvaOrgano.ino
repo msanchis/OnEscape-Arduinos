@@ -8,7 +8,8 @@
  *  estat=4
  *  estat=5 quinta i ultima prova
  *  estat=6 organ desactivat
- * 
+ *  estat=8
+ *  estat=9 
  ********************* 
  * 
  * Arduino MEGA (caixo pared magatzem)
@@ -33,9 +34,10 @@
  *  
  * Per establir la prova i obrir porta 
  *  sala2/iniciaPunxos 
- *  sala2/estat2Punxos
- *  sala2/estat3Punxos
- *  sala2/estat4Punxos
+ *  sala2/punxos1
+ *  sala2/punxos2
+ *  sala2/punxos3
+ *  sala2/punxos4 #Encara no s utilitza
  *  sala2/finalPunxos 
  *  
  ***********************  
@@ -68,6 +70,9 @@ boolean provaFinal=false;
 
 //Variable per seguir el estat de la prova del organ i el sostre de punxos i verificar el acord correcte
 int estat=0;
+
+//Variable per guardar el estat abans de activar organ
+int estatDesactivat=0;
 
 //VARIABLES i objectes de la xarxa i client Mosquitto
 byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0xFA};//mac del arduino
@@ -171,6 +176,13 @@ unsigned long tiempoTecla18=0;
 unsigned long tiempoTecla19=0;
 unsigned long tiempoTecla20=0;
 
+unsigned long tiempoIniciaPunxos=0;
+unsigned long tiempoPunxos1=0;
+unsigned long tiempoPunxos2=0;
+unsigned long tiempoPunxos3=0;
+
+unsigned long tiempoInicial=0;
+
 void setup ()
 {
   pinMode (led1, OUTPUT) ; // Definimos el pin led ojo derecho
@@ -220,14 +232,6 @@ void setup ()
 }
 
 
-void acordInicial(){ //EXECUTAT DESDE SERVIDOR RASP AUDIO2.PY
-  //Activem el teclat de l'organ
-  
-  delay(6000);
-  apagaLedsInicial();
-  actiu=true;
-}
-
 void apagaLedsInicial(){
   digitalWrite(led1,LOW);
   digitalWrite(led2,LOW);
@@ -262,6 +266,17 @@ void encenBoca(){
 
 void apagaBoca(){
   digitalWrite(led3,LOW);
+}
+
+void parpadeja(){
+  encenUllDret();
+  encenUllEsquerra();
+  encenBoca();
+  delay(300);
+  apagaUllDret();
+  apagaUllEsquerra();
+  apagaBoca();
+  delay(300);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -350,8 +365,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
         Serial.print(F("ENTRA a activaOrgan"));           
      #endif
 
-    encenLedsInicial();
-    acordInicial();    
+    actiu=true;
+    tiempoInicial=millis();
+    estat=9;
   }
     
   res=strcmp(topic,"sala2/desactivaOrgan");
@@ -367,50 +383,46 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a iniciaPunxos"));                
      #endif
+     estatDesactivat=1;
+     tiempoIniciaPunxos=millis();
      if (actiu) {
-      estat=1;
-      digitalWrite(led1,HIGH);
-      digitalWrite(led2,LOW);
-      digitalWrite(led3,LOW);
+      estat=1;           
      }
   }
 
-  res=strcmp(topic,"sala2/estat2Punxos");
+  res=strcmp(topic,"sala2/punxos1");
   if (res == 0) {     
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a estat2Punxos"));                
      #endif
-     if (actiu) {
-      estat=2;     
-      digitalWrite(led1,LOW);
-      digitalWrite(led2,HIGH);
-      digitalWrite(led3,LOW);
+     estatDesactivat=2;
+     tiempoPunxos1=millis();  
+     if (actiu) {      
+      estat=2;             
      }
   }
 
-  res=strcmp(topic,"sala2/estat3Punxos");
+  res=strcmp(topic,"sala2/punxos2");
   if (res == 0) {     
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a estat3Punxos"));                
      #endif
+     estatDesactivat=3;
+     tiempoPunxos2=millis();
      if (actiu) {
-       estat=3;
-       digitalWrite(led1,LOW);
-       digitalWrite(led2,LOW);
-       digitalWrite(led3,HIGH);
+       estat=3;       
      }
   }
 
-  res=strcmp(topic,"sala2/estat4Punxos");
+  res=strcmp(topic,"sala2/punxos3");
   if (res == 0) {     
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a estat4Punxos"));                
      #endif
+     estatDesactivat=4;
+     tiempoPunxos3=millis();
      if (actiu) {
        estat=4;
-       digitalWrite(led1,HIGH);
-       digitalWrite(led2,HIGH);
-       digitalWrite(led3,LOW);
      }
   }
 
@@ -419,10 +431,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
      #ifdef DEBUG_ORGAN
         Serial.print(F("ENTRA a finalPunxos"));                
      #endif
-     if (actiu) {
-     estat=5;
-      
-     }
+     //estatDesactivat=5;
+     //if (actiu) {      
+     // estat=5;           
+     //}
   }
 
   res=strcmp(topic,"sala2/detectaCor");
@@ -459,10 +471,10 @@ void reconnect() {
       client.subscribe("sala2/desactivaOrgan"); 
       
       client.subscribe("sala2/iniciaPunxos");
-      client.subscribe("sala2/estat2Punxos");
-      client.subscribe("sala2/estat3Punxos");
-      client.subscribe("sala2/estat4Punxos");
-      client.subscribe("sala2/estat5Punxos");      
+      client.subscribe("sala2/punxos1");
+      client.subscribe("sala2/punxos2");
+      client.subscribe("sala2/punxos3");
+      client.subscribe("sala2/punxos4");      
       client.subscribe("sala2/finalPunxos");
 
       client.subscribe("sala2/encenUllDret");
@@ -815,36 +827,72 @@ void loop ()
     }
 
     switch(estat){
-      case 2:
+      case 1:         
+          if ( tiempoIniciaPunxos > 0 && millis() - tiempoIniciaPunxos > 13000) {
+             digitalWrite(led1,HIGH);
+             digitalWrite(led2,LOW);
+             digitalWrite(led3,LOW);
+          } else  parpadeja();
+
           if (!acordCorrecte && !EstadoTecla7 && !EstadoTecla11 && !EstadoTecla13 && !EstadoTecla16){
             client.publish("sala2/acordCorrecte","on");
             acordCorrecte=true;
           }
+          
       break;
-      case 3:
+      case 2:
+          if ( tiempoPunxos1 > 0 && millis() - tiempoPunxos1 > 13000) {
+             digitalWrite(led1,LOW);
+             digitalWrite(led2,HIGH);
+             digitalWrite(led3,LOW);
+          }
+
           if (!acordCorrecte && !EstadoTecla4 && !EstadoTecla7 && !EstadoTecla10  && !EstadoTecla12){
             client.publish("sala2/acordCorrecte","on");
             acordCorrecte=true;
           }
+          
+      break;
+      case 3:
+          if ( tiempoPunxos2 > 0 && millis() - tiempoPunxos2 > 13000) {
+             digitalWrite(led1,LOW);
+             digitalWrite(led2,LOW);
+             digitalWrite(led3,HIGH);
+          }
+          if (!acordCorrecte && !EstadoTecla1 && !EstadoTecla5 && !EstadoTecla9){
+            client.publish("sala2/acordCorrecte","on");
+            acordCorrecte=true;
+          }
+          
       break;
       case 4:
-           if (!acordCorrecte && !EstadoTecla1 && !EstadoTecla5 && !EstadoTecla9){
+          if ( tiempoPunxos3 > 0 && millis() - tiempoPunxos3 > 13000) {
+             digitalWrite(led1,HIGH);
+             digitalWrite(led2,HIGH);
+             digitalWrite(led3,LOW);
+          }
+          if (!acordCorrecte && !EstadoTecla14 && !EstadoTecla17 && !EstadoTecla20){
             client.publish("sala2/acordCorrecte","on");
             acordCorrecte=true;
           }
       break;
-      case 5:
-           if (!acordCorrecte && !EstadoTecla14 && !EstadoTecla17 && !EstadoTecla20){
-            client.publish("sala2/acordCorrecte","on");
-            acordCorrecte=true;
-          }
+      //case 5:
+      //     
+      //break;
       case 8:
            if (!provaFinal && !EstadoTecla20  && !EstadoTecla16 && !EstadoTecla14 && !EstadoTecla9 && !EstadoTecla5){
             client.publish("sala2/acordFinalCorrecte","on");
             provaFinal=true;           
            }
       break;
-    }
+      case 9:
+          parpadeja();
+          if (tiempoInicial > 0 && millis() - tiempoInicial > 10000){
+            if (estatDesactivat == 0) estat = 1;
+            else estat = estatDesactivat;            
+          }          
+      break;
+    } 
     
   } //IF si esta actiu 
 

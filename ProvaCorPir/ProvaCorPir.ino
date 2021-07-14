@@ -53,9 +53,9 @@ PubSubClient client(ethClient); //cliente MQTT
 
 #define DEBUG_LED //Comentar quant no s'utilitze el DEBUG per espai en memòria dinàmica
 
-#define BOMBA 8 //Pin 6 per a relé Bomba Aigua
+#define BOMBA 8 //Pin 8 per a relé Bomba Aigua REVISAR NO FUNCIONA
 #define PIR 4 //Estableix el pin 4 per al sensor PIR
-#define RELE 3 //Estableix el pin 3 per al relé Electroiman COR
+#define RELE 7 //Estableix el pin 7 per al relé Electroiman COR REVISAR NO FUNCIONA
 
 int tiempo = 5000; //Tiempo antes de soltar la llave
 boolean sensor; //Variable que almacena el estado del sensor (activado/desactivado)
@@ -75,7 +75,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 #endif
   int res = strcmp(topic, "sala2/reset");
   if (res == 0) {    //RESET para toda la sala
-    // wdt_enable(WDTO_15MS); // Configuramos el contador de tiempo para que se reinicie en 15ms
+    // wdt_enable(WDTO_15MS); // Configuramos el contador de tiemp o para que se reinicie en 15ms
     resetFunc(); //llamada a la funcio de reseteig
 
   }
@@ -178,8 +178,10 @@ void setup()
   Ethernet.begin(mac, ip);
  
   pinMode(PIR, INPUT); //Establece el pin del sensor como entrada
-  pinMode(RELE, OUTPUT); //Establece el pin del relé como salida
+  pinMode(RELE, OUTPUT); //Establece el pin del relé electroiman llave como salida
+  digitalWrite(RELE, LOW);
   pinMode(BOMBA, OUTPUT);  //Bomba salida
+  digitalWrite(BOMBA, LOW);
 
 #ifdef DEBUG_LED
   Serial.println(F("connectant..."));
@@ -192,22 +194,21 @@ void setup()
 void loop()
 {
   sensor = digitalRead(PIR); //Guarda el estado del sensor en la variable
-  if (estat == 1) { //Per activar el sensor ha d'aplegar event FinalPedestal o activaCor       
-    Serial.println(sensor); 
+  if (estat == 1) { //Per activar el sensor ha de aplegar event finalPedestal o activaCor
+    //Serial.println(sensor);
     if (sensor == HIGH && !entra){
       client.publish("sala2/detectaCor","on");
-      digitalWrite(RELE, HIGH); //Activa la alarma
+      digitalWrite(RELE,LOW); //Desconnecta l'eletrcoiman i Solta la clau
       temps=millis();     
       entra=true; 
     }
 
-    if (temps > 0 && millis() - temps > 4000 ){      
-      digitalWrite(RELE, LOW); //Desconecta la alarma
+    if (temps > 0 && millis() - temps > 8000 ){      
+      digitalWrite(RELE,HIGH); //Connecta l'electroiman
       estat=0; //Es desactiva el sensor
       temps=0;
       entra=false;
-    }
-  
+    }  
   }
   if (!client.connected()) {
     reconnect();

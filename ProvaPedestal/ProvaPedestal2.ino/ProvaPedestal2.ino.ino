@@ -97,7 +97,7 @@ boolean entra6=false;
 
 boolean final=false;
 
-const int SensorPuzzle = A0; //Sensor puzzle paret
+const int SensorPuzzle = 49; //Sensor puzzle paret
 unsigned long marcaTemps0 = 0; //Marca de temps per al puzzle paret
 
 const int Sensor1 = 23;    // Sensor1 presencia iman1
@@ -577,7 +577,7 @@ if (estat < 7) {
         entra5=false;
       }
       if (marcaTemps5 > 0 && (millis()-marcaTemps5 > 300)){
-         if (DEBUG) Serial.println("RelElectro6 HIGH");
+        if (DEBUG) Serial.println("RelElectro6 HIGH");
         digitalWrite(RelElectro6,HIGH); //Desactivem electroiman6 i encenem llum 3
         //Enviem publicacio segona reliquia activada (ENCÉN LLUM BASCULA)
         client.publish("sala2/reliquia5","1");
@@ -596,7 +596,7 @@ if (estat < 7) {
         entra6=false;
       }
       if (marcaTemps6 > 0 && (millis()-marcaTemps6 > 300)){
-         if (DEBUG) Serial.println("RelElectro7 HIGH");
+        if (DEBUG) Serial.println("RelElectro7 HIGH");
         digitalWrite(RelElectro7,HIGH); //Encenem llum 6
         client.publish("sala2/reliquia6","1");
         estat=7;

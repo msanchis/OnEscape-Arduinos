@@ -47,7 +47,7 @@ PubSubClient client(ethClient); //cliente MQTT
 
 const int RelPorta = 2; // Pin Rele Porta (12V)
 const int RelAntorxa = 3; // Pin Rele AntorxaPuntxos (24V)
-const int Rele = 4; // Pin Rele BUIT
+const int RelFinalOrgan = 4; // Pin Rele Electroiman Porteta ClauFinal Organ (12V)
 const int RelUltra = 5; // Pin Rele UltraVioletaPuntxos (220V)
 
 //#define DEBUG_ULTRA//Comentar quant no s'utilitze el DEBUG per espai en memòria dinàmica
@@ -78,12 +78,13 @@ void setup() {
 
   pinMode(RelPorta, OUTPUT);
   pinMode(RelAntorxa, OUTPUT);
-  pinMode(Rele, OUTPUT);
+  pinMode(RelFinalOrgan, OUTPUT);
   pinMode(RelUltra, OUTPUT);
 
   digitalWrite(RelPorta,HIGH); //La porta comensa tancada de inici (Oberta de pulsador magatzem)
   digitalWrite(RelAntorxa,HIGH);
   digitalWrite(RelUltra,HIGH);
+  digitalWrite(RelFinalOrgan,HIGH);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -134,6 +135,19 @@ void callback(char* topic, byte* payload, unsigned int length) {
      digitalWrite(RelAntorxa,HIGH);
      digitalWrite(RelUltra,HIGH);     
   }
+  res=strcmp(topic,"sala2/acordFinalCorrecte");
+  if (res == 0) {    //obriPortetaClauFinal
+     digitalWrite(RelFinalOrgan,LOW);         
+  }
+  res=strcmp(topic,"sala2/obriClauFinalOrgan");
+  if (res == 0) {    //obriPortetaClauFinal
+     digitalWrite(RelFinalOrgan,LOW);         
+  }
+  res=strcmp(topic,"sala2/tancaClauFinalOrgan");
+  if (res == 0) {    //obriPortetaClauFinal
+     digitalWrite(RelFinalOrgan,HIGH);         
+  }
+      
   
 }
 
@@ -149,7 +163,7 @@ void reconnect() {
       //Serial.println(F("connected"));      
 
       #ifdef DEBUG_ULTRA 
-        Serial.print(F("Subscribe to reset resetPedestal reiniciPedestal estat0Pedestal estat1Pedestal"));
+        Serial.print(F("Subscribe to reset resetUltraPortaAntorxa"));
       #endif
       client.subscribe("sala2/reset"); 
       client.subscribe("sala2/resetUltraPortaAntorxa");
@@ -162,6 +176,9 @@ void reconnect() {
       client.subscribe("sala2/apagaAntorxaPunxos");
       client.subscribe("sala2/iniciaPunxos");
       client.subscribe("sala2/acordCorrecte");
+      client.subscribe("sala2/acordFinalCorrecte");
+      client.subscribe("sala2/obriClauFinalOrgan");
+      client.subscribe("Sala2/tancaClauFinalOrgan");
 
     } else {
       #ifdef DEBUG_ULTRA
