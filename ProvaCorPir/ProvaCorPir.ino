@@ -3,8 +3,9 @@
  *   
  * Arduino NANO (baix holograma)
  * 
- * 1 rele que controla electroiman clau prova final (cor)
- *  
+ * 1 rele que controla electroiman clau prova final (cor) 9-12V
+ * 1 rele que controla lentrada de corrent electrica a la bomba aigua i llum (antorxa) 220V
+ * 1 rele en paralel al interrutor (Trident) per encendre bomba aigua i llum (antorxa) 220V
  * 1 PIR que detecta quan es tira el cor pel forat  
  * 
  ***********************
@@ -24,9 +25,13 @@
  *  sala2/activaCor
  *  sala2/finalPedestal
  *  
- * Activa relé bomba aigua
+ * Activa relé bomba aigua (paralel amb el interruptor)
  *  sala2/activaBombaAigua
- *  sala2/desactivaBombaAigua
+ *  sala2/desactivaBombaAigua  
+ *  
+ *  Apaga relé bomba aigua (connectat a lentrada)
+ *  sala2/apagaBombaAigua
+ *  sala2/encenBombaAigua
  *  
  * Desactiva el sensor (estat=0)
  *  sala2/desactivaCor
@@ -53,7 +58,9 @@ PubSubClient client(ethClient); //cliente MQTT
 
 #define DEBUG_LED //Comentar quant no s'utilitze el DEBUG per espai en memòria dinàmica
 
-#define BOMBA 8 //Pin 8 per a relé Bomba Aigua REVISAR NO FUNCIONA
+#define BOMBA 8 //Pin 8 per a relé Bomba Aigua (encendre)
+#define BOMBA_APAGA 2 //Pin 2 per a relé Bomba Aigua (apagar)
+#define RELE_VACIO 3
 #define PIR 4 //Estableix el pin 4 per al sensor PIR
 #define RELE 7 //Estableix el pin 7 per al relé Electroiman COR REVISAR NO FUNCIONA
 
@@ -87,12 +94,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   res = strcmp(topic, "sala2/obriClauCor");
   if (res == 0) {    //obrir Rele per deixar caure la clau
-    digitalWrite(RELE, HIGH);
+    digitalWrite(RELE, LOW);
   }
 
   res = strcmp(topic, "sala2/tancaClauCor");
   if (res == 0) {    //tancar Rele per imantar la clau
-    analogWrite(RELE, LOW);
+    analogWrite(RELE, HIGH);
   }
 
   res = strcmp(topic, "sala2/finalPedestal");
@@ -112,14 +119,24 @@ void callback(char* topic, byte* payload, unsigned int length) {
     entra = false;
   }
 
-  res = strcmp(topic,"sala2/activaBombaAigua");
+  res = strcmp(topic,"sala2/activaBombaAigua"); //NOMES ENCEN (Si rele BOMBA_APAGA està desactivat)
+  if (res == 0){
+    digitalWrite(BOMBA,LOW);
+  }
+
+  res = strcmp(topic,"sala2/desactivaBombaAigua"); //NOMES APAGA SEGON RELE (SI rele BOMBA_APAGA està desactivat) no fa res 
   if (res == 0){
     digitalWrite(BOMBA,HIGH);
   }
 
-  res = strcmp(topic,"sala2/desactivaBombaAigua");
+  res = strcmp(topic,"sala2/paraBombaAigua"); //APAGA SEGUR
   if (res == 0){
-    digitalWrite(BOMBA,LOW);
+    digitalWrite(BOMBA_APAGA,LOW);
+  }
+
+  res = strcmp(topic,"sala2/encenBombaAigua"); //ACTIVA RELE PER A PODER ENCENDRE BOMBA
+  if (res == 0){
+    digitalWrite(BOMBA_APAGA,HIGH);
   }
 
 }
@@ -147,7 +164,9 @@ void reconnect() {
       client.subscribe("sala2/activaCor");
       client.subscribe("sala2/desactivaCor");
       client.subscribe("sala2/activaBombaAigua");
-      client.subscribe("sala2/desactivaBombaAigua");
+      client.subscribe("sala2/desactivaBombaAigua");      
+      client.subscribe("sala2/paraBombaAigua");
+      client.subscribe("sala2/encenBombaAigua");
       client.subscribe("sala2/finalPedestal");
 
     } else {
@@ -179,9 +198,11 @@ void setup()
  
   pinMode(PIR, INPUT); //Establece el pin del sensor como entrada
   pinMode(RELE, OUTPUT); //Establece el pin del relé electroiman llave como salida
-  digitalWrite(RELE, LOW);
+  digitalWrite(RELE, HIGH);
   pinMode(BOMBA, OUTPUT);  //Bomba salida
-  digitalWrite(BOMBA, LOW);
+  digitalWrite(BOMBA, HIGH);
+  pinMode(BOMBA_APAGA, OUTPUT);  //Bomba entrada
+  digitalWrite(BOMBA_APAGA, HIGH);
 
 #ifdef DEBUG_LED
   Serial.println(F("connectant..."));
@@ -190,7 +211,6 @@ void setup()
 #endif
 }
 
-
 void loop()
 {
   sensor = digitalRead(PIR); //Guarda el estado del sensor en la variable
@@ -198,13 +218,13 @@ void loop()
     //Serial.println(sensor);
     if (sensor == HIGH && !entra){
       client.publish("sala2/detectaCor","on");
-      digitalWrite(RELE,LOW); //Desconnecta l'eletrcoiman i Solta la clau
+      digitalWrite(RELE,HIGH); //Desconnecta l'eletrcoiman i Solta la clau
       temps=millis();     
       entra=true; 
     }
 
     if (temps > 0 && millis() - temps > 8000 ){      
-      digitalWrite(RELE,HIGH); //Connecta l'electroiman
+      digitalWrite(RELE,LOW); //Connecta l'electroiman
       estat=0; //Es desactiva el sensor
       temps=0;
       entra=false;

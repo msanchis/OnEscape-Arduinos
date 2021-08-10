@@ -202,7 +202,7 @@ void loop() {
         Serial.println();
       }
       // Comparar ID con las claves válidas
-      if (isEqualArray(mfrc522.uid.uidByte, validKey1, 4)) {
+      if (!entra && isEqualArray(mfrc522.uid.uidByte, validKey1, 4)) {
         if (DEBUG) Serial.println(F("Tarjeta valida"));
         if (!enviaRFID) {
           digitalWrite(RELE_ROIG, LOW);
