@@ -49,7 +49,7 @@ const int RelPorta = 2; // Pin Rele Porta (12V)
 const int RelAntorxa = 3; // Pin Rele AntorxaPuntxos (24V)
 const int RelFinalOrgan = 4; // Pin Rele Electroiman Porteta ClauFinal Organ (12V)
 const int RelUltra = 5; // Pin Rele UltraVioletaPuntxos (220V)
-
+const int RelAranya =7; //Pin Rele Aranya (12 V)
 //#define DEBUG_ULTRA//Comentar quant no s'utilitze el DEBUG per espai en memòria dinàmica
 
 void(* resetFunc) (void) = 0; //declare reset function @ address 0
@@ -80,11 +80,12 @@ void setup() {
   pinMode(RelAntorxa, OUTPUT);
   pinMode(RelFinalOrgan, OUTPUT);
   pinMode(RelUltra, OUTPUT);
+  pinMode(RelAranya, OUTPUT);
 
   digitalWrite(RelPorta,HIGH); //La porta comensa tancada de inici (Oberta de pulsador magatzem)
   digitalWrite(RelAntorxa,HIGH);
   digitalWrite(RelUltra,HIGH);
-  digitalWrite(RelFinalOrgan,HIGH);
+  digitalWrite(RelAranya,HIGH);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -147,6 +148,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (res == 0) {    //obriPortetaClauFinal
      digitalWrite(RelFinalOrgan,HIGH);         
   }
+  res=strcmp(topic,"sala2/aranya");
+  if (res == 0) {
+      digitalWrite(RelAranya,LOW);
+      delay(800);
+      digitalWrite(RelAranya,HIGH);
+  }
       
   
 }
@@ -178,7 +185,8 @@ void reconnect() {
       client.subscribe("sala2/acordCorrecte");
       client.subscribe("sala2/acordFinalCorrecte");
       client.subscribe("sala2/obriClauFinalOrgan");
-      client.subscribe("Sala2/tancaClauFinalOrgan");
+      client.subscribe("sala2/tancaClauFinalOrgan");
+      client.subscribe("sala2/aranya");
 
     } else {
       #ifdef DEBUG_ULTRA
