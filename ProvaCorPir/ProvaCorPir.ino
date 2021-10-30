@@ -42,8 +42,8 @@
  *
  */
 
-#include <EthernetENC.h> //Conexio Ethernet per al Nano
-//#include <Ethernet.h> //Conexio Ethernet per W5100
+//#include <EthernetENC.h> //Conexio Ethernet per al Nano
+#include <Ethernet.h> //Conexio Ethernet per W5100
 #include <PubSubClient.h> //Conexio MQTT
 
 //VARIABLES i objectes de la xarxa i client Mosquitto

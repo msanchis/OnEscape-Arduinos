@@ -29,7 +29,10 @@
  *  sala2/encenAntorxaPunxos
  *  sala2/apagaAntorxaPunxos
  *  sala2/iniciaPunxos (LEDSALA2)
- *  sala2/acordCorrecte (ORGAN)
+ *  sala2/acordCorrecte
+ *  
+ * Controla la porteta de baix del organ per donar clau 
+ *  sala2/acordFinalCorrecte (ORGAN)
  *  
  ***********************
  */
@@ -85,7 +88,8 @@ void setup() {
   digitalWrite(RelPorta,HIGH); //La porta comensa tancada de inici (Oberta de pulsador magatzem)
   digitalWrite(RelAntorxa,HIGH);
   digitalWrite(RelUltra,HIGH);
-  digitalWrite(RelAranya,HIGH);
+  digitalWrite(RelAranya,LOW);
+  digitalWrite(RelFinalOrgan, HIGH);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -145,13 +149,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
      digitalWrite(RelFinalOrgan,LOW);         
   }
   res=strcmp(topic,"sala2/tancaClauFinalOrgan");
-  if (res == 0) {    //obriPortetaClauFinal
+  if (res == 0) {    //tancaPortetaClauFinal
      digitalWrite(RelFinalOrgan,HIGH);         
   }
   res=strcmp(topic,"sala2/aranya");
-  if (res == 0) {
-      digitalWrite(RelAranya,LOW);
-      delay(800);
+  if (res == 0) {   //deixa caure la aranya
       digitalWrite(RelAranya,HIGH);
   }
       
@@ -166,7 +168,7 @@ void reconnect() {
       Serial.print(Ethernet.localIP());
     #endif
     // Attempt to connect
-    if (client.connect("UltraPortaAntorxa")) {
+    if (client.connect("UltraPortaAntorxaClauOrganAranya")) {
       //Serial.println(F("connected"));      
 
       #ifdef DEBUG_ULTRA 

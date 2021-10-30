@@ -523,7 +523,7 @@ if (estat < 7) {
         estat=3;
         //Enviem publicacio segona reliquia activada (ENCÉN LLUM BASCULA)
         client.publish("sala2/reliquia2","1");
-        client.publish("sala2/activaBascula","ON");
+        //client.publish("sala2/activaBascula","ON");
         
       }else digitalWrite(RelElectro3,LOW);
       break;
@@ -659,7 +659,7 @@ if (estat < 7) {
          delay(500);
          digitalWrite(RelElectro2,LOW);             
 
-         delay(3000);
+         delay(2200);
          
          digitalWrite(RelElectro2,HIGH); //Encenem totes les llums
          //delay(500);

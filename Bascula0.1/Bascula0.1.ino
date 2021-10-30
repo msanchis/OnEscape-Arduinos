@@ -52,8 +52,8 @@
 #include <PubSubClient.h> //Conexion MQTT
 
 //VARIABLES i objectes de la xarxa i client Mosquitto
-byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFF, 0xAA};//mac del arduino
-IPAddress ip(192, 168, 68, 200); //Ip fija del arduino
+byte mac[] = {0xDE, 0xED, 0xBA, 0xFE, 0xFF, 0xF1};//mac del arduino
+IPAddress ip(192, 168, 68, 199); //Ip fija del arduino
 IPAddress server(192, 168, 68, 55); //Ip del server de mosquitto
 
 EthernetClient ethClient; //Interfaz de red ethernet
@@ -73,9 +73,9 @@ const int releElectroIman = 5; //encén els leds i tanca electroiman o al revés
 
 const int releImanPorta = 7; //activa el electroiman per tancar porta
 const int releUltravioleta12 = 6; // encén la llum ultavioleta 12V
-const int releUltravioleta220 = 8; //encén la llum ultravioleta 220V
-const int releCameraWifi = 9; // encén la càmera wifi
-
+const int releUltravioleta220 = 8; //encén la bombilla foc 220V
+//const int releCameraWifi = 9; //No hi ha res conectat
+ 
 const int ledRed = 3;
 const int ledGreen = 2;
 const int ledBlue = 4;
@@ -141,8 +141,8 @@ void setup() {
   pinMode(releUltravioleta220,OUTPUT);
   digitalWrite(releUltravioleta220,HIGH);
   
-  pinMode(releCameraWifi,OUTPUT);
-  digitalWrite(releCameraWifi,LOW);
+ // pinMode(releCameraWifi,OUTPUT);
+//  digitalWrite(releCameraWifi,LOW);
 
   pinMode(pinFinalCarrera,INPUT_PULLUP);
 
@@ -230,6 +230,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     manual=false;
   }
 
+//Tant activaBascula como comensa pasan al estat=1
   res=strcmp(topic,"sala2/activaBascula");
   if (res == 0) {
     #ifdef DEBUG_HX711
@@ -239,10 +240,19 @@ void callback(char* topic, byte* payload, unsigned int length) {
     estat=1;
   }
 
+  res=strcmp(topic,"sala2/comensa");
+  if (res == 0) {
+    #ifdef DEBUG_HX711
+      Serial.println(F("Estat = 1 comensa "));
+    #endif
+    digitalWrite(releElectroIman,LOW);
+    estat=1;
+  }
+
   res=strcmp(topic,"sala2/desactivaBascula");
   if (res == 0) {
     #ifdef DEBUG_HX711
-      Serial.print(F("Estat = 2 desactiva Bascula "));
+      Serial.print(F("Estat = 0 desactiva Bascula "));
     #endif
     digitalWrite(releElectroIman,HIGH);
 
@@ -301,7 +311,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     #endif
     digitalWrite(releUltravioleta12,HIGH);    
   }
-
+/*
   res=strcmp(topic,"sala2/apagaCamara");
   if (res==0) {
      #ifdef DEBUG_HX711
@@ -317,11 +327,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
     #endif
     digitalWrite(releCameraWifi,LOW);    
   }    
-
+*/
   res=strcmp(topic,"sala2/detectaCor");
   if (res==0) {
      #ifdef DEBUG_HX711
-      Serial.print(F("Entra a detectaCor"));
+      Serial.print(F("Entra a detectaCor estat = 2 "));
      #endif             
     
     estat=2;
@@ -364,6 +374,7 @@ void reconnect() {
       #endif
       client.subscribe("sala2/reset");
       client.subscribe("sala2/resetBascula");  
+      client.subscribe("sala2/comensa");
       client.subscribe("sala2/basculaObrir");
       client.subscribe("sala2/basculaTancar");
       client.subscribe("sala2/basculaModoManual");
@@ -372,10 +383,10 @@ void reconnect() {
       client.subscribe("sala2/desactivaBascula");
       client.subscribe("sala2/encenUltra220");
       client.subscribe("sala2/encenUltra12");
-      client.subscribe("sala2/encenCamara");
+      //client.subscribe("sala2/encenCamara");
       client.subscribe("sala2/apagaUltra220");
       client.subscribe("sala2/apagaUltra12");
-      client.subscribe("sala2/apagaCamara");
+      //client.subscribe("sala2/apagaCamara");
       client.subscribe("sala2/obriPortaCara");
       client.subscribe("sala2/tancaPortaCara");
       client.subscribe("sala2/detectaCor");
@@ -519,7 +530,7 @@ void loop() {
     if (millis()- controlTemps < 150 ) cont2++;
     else cont2=0;
     controlTemps=millis();
-    if (cont2 > 12500) { //VALOR DE PROVA 8500 DEFINITIU DE MOMENT 12500
+    if (cont2 > 8500) { //VALOR DE PROVA 8500 DEFINITIU
       tancaPortaReal=true;      
     }
   }
@@ -549,7 +560,7 @@ void loop() {
  
   if (!client.connected()) {
     reconnect();
-  }  
+  }
   
   client.loop();  
   
