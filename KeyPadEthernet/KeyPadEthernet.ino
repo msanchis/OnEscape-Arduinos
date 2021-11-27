@@ -93,9 +93,9 @@ void setup(){
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_BLUE, OUTPUT);
   pinMode(RELAY, OUTPUT);
-  digitalWrite(RELAY,HIGH); 
+  digitalWrite(RELAY,LOW); 
   Serial.begin(9600);
-  Serial.println("inicia");
+  //Serial.println("inicia");
 
   //MQTT
   client.setServer(server, 1883);
@@ -105,8 +105,8 @@ void setup(){
    //Ethernet.begin(mac,ip);
    //Ethernet.begin(mac, ip, DNS, gateway, subnet);    
    delay(1000);
-   Serial.println(F("connecting..."));
-   Serial.println(Ethernet.localIP());
+   //Serial.println(F("connecting..."));
+   //Serial.println(Ethernet.localIP());
  
 }
 
@@ -116,9 +116,10 @@ void loop(){
   //Condició per a cambiar l'estat del relé, és a dir, tallar la corrent de l'apertura de porta
    if ( entra && (millis() - marcaTemps > tempsRelay) ){
      entra=false;
-     digitalWrite(RELAY,HIGH);  
+     digitalWrite(RELAY,LOW);  
    }
-   
+
+   /*
    //Comunicació en serial entre el UNO y Consola
    if (Serial.available()){ 
     //String c = BT.readString() ;
@@ -138,6 +139,8 @@ void loop(){
       digitalWrite( RELAY, HIGH);      
     }
    }
+   */
+   
    if (!entra && !client.connected()) {
       reconnect();
    }
@@ -178,8 +181,9 @@ void Verd()
 void correctKEY() // do this if the correct KEY is entered
 {
    
-  Serial.println(" KEY ACCEPTED...");
-  Verd();   
+  //Serial.println(" KEY ACCEPTED...");
+ 
+  //Verd();   
   // iterate over the notes of the melody:
   for (int thisNote = 0; thisNote < 5; thisNote++) {
     int noteDuration = 200;
@@ -187,10 +191,10 @@ void correctKEY() // do this if the correct KEY is entered
     int pauseBetweenNotes = 100;
     delay(pauseBetweenNotes);
   }
-  Verd();
-    
+  //Verd();
   marcaTemps=millis();
-  digitalWrite(RELAY,LOW);
+  digitalWrite(RELAY,HIGH);  
+  
   entra=true;  
   z=0;
   
@@ -230,7 +234,7 @@ void checkKEY()
       }
    }
    String cod = String(attempt);
-   Serial.println(attempt);
+   //Serial.println(attempt);
    client.publish("sala1/tpdirector",(char *)cod.c_str());
    //Serial.print(cod);
    if (correct==4 && incorrecto==0){
@@ -289,12 +293,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
   int res=strcmp(topic,"sala1/abrirpuertadirector");
   if (res == 0) {
     marcaTemps=millis();
-    digitalWrite(RELAY,LOW);
+    digitalWrite(RELAY,HIGH);
     entra=true;  
   }
   res=strcmp(topic,"sala1/cerrarpuertadirector");
   if (res == 0) {    
-    digitalWrite(RELAY,HIGH);
+    digitalWrite(RELAY,LOW);
   }
   res=strcmp(topic,"sala1/reset");
   int resu = strcmp(topic,"sala1/resetKeyPad");  
@@ -321,7 +325,7 @@ void reconnect() {
       Serial.print(client.state());
       //Serial.println(" try again in 5 seconds");
       // Wait 3 seconds before retrying
-      delay(3000);
+      delay(2000);
     }
   }
 }
